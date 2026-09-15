@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
-import 'services_management_screen.dart';
+import 'admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -40,8 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (user.role != "admin") {
-        // Don't let a student account stay "logged in" here with a token
-        // that just can't do anything — log them straight back out.
         await AuthService.logout();
         setState(() => _errorMessage = "This account is not an administrator.");
         return;
@@ -49,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => ServicesManagementScreen(adminName: user.fullName)),
+        MaterialPageRoute(builder: (_) => AdminDashboardScreen(adminName: user.fullName)),
       );
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
