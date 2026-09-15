@@ -1,0 +1,55 @@
+# ================= Node / Backend =================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*
+!.env.example
+dist/
+build/
+coverage/
+logs/
+*.log
+npm-debug.log*
+
+# ================= Flutter / Dart =================
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# Flutter iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+
+# Flutter Android
+android/.gradle/
+android/captures/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# ================= IDE =================
+.idea/
+.vscode/
+*.swp
+
+# ================= OS =================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ================= Secrets =================
+*.pem
+*.key
+secrets.json
