@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services_management_screen.dart';
 import 'requests_management_screen.dart';
+import 'reports_screen.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
 
@@ -35,6 +36,22 @@ class AdminDashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.bar_chart),
+                    title: const Text("Reports & Stats"),
+                    subtitle: const Text("Overview of students, requests, and payments"),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ReportsScreen(adminName: adminName),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.list_alt),

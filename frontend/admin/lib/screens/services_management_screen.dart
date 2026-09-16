@@ -62,6 +62,16 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
     }
   }
 
+  Future<void> _reactivate(CampusService service) async {
+    try {
+      await ServiceManagementService.reactivateService(service.id);
+      _loadServices();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
   Future<void> _openAddServiceDialog() async {
     final nameController = TextEditingController();
     final descriptionController = TextEditingController();
@@ -213,7 +223,11 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                   tooltip: "Deactivate",
                   onPressed: () => _deactivate(service),
                 )
-              : const Icon(Icons.check_circle_outline, color: Colors.grey),
+              : IconButton(
+                  icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                  tooltip: "Reactivate",
+                  onPressed: () => _reactivate(service),
+                ),
         );
       },
     );

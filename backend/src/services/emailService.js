@@ -1,9 +1,14 @@
+// Sends transactional emails via Brevo's SMTP relay
+// (smtp-relay.brevo.com). Unlike Resend's default sandbox mode, Brevo's
+// free tier (300 emails/day) allows sending to any recipient from day
+// one — the "from" address just needs to match the email you signed up
+// to Brevo with (or a verified sender/domain later).
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
+  secure: false, // Brevo uses STARTTLS on 587, not implicit TLS
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,

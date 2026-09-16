@@ -1,6 +1,7 @@
 import '../models/service.dart';
 import 'api_service.dart';
 
+/// Wraps the admin-only /api/services endpoints.
 class ServiceManagementService {
   static Future<List<CampusService>> listServices() async {
     final data = await ApiService.get("/services");
@@ -24,5 +25,9 @@ class ServiceManagementService {
 
   static Future<void> deactivateService(String id) async {
     await ApiService.delete("/services/$id");
+  }
+
+  static Future<void> reactivateService(String id) async {
+    await ApiService.put("/services/$id", {"status": "active"});
   }
 }
