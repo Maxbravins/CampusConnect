@@ -1,6 +1,7 @@
 const Payment = require("../models/Payment");
 const Request = require("../models/Request");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { initiateStkPush } = require("../services/mpesaService");
 const { sendPaymentEmail } = require("../services/emailService");
 
@@ -52,7 +53,14 @@ async function mpesaCallback(req, res, next) {
     if (success) {
       await Request.findByIdAndUpdate(payment.request, { status: "Paid" });
       const student = await User.findById(payment.student);
-      if (student) sendPaymentEmail(student.email, payment.amount);
+      if (student) {
+        sendPaymentEmail(student.email, payment.amount);
+        await Notification.create({
+          user: student._id,
+          title: "Payment Received",
+          message: `Your payment of KES ${payment.amount} was successful.`,
+        });
+      }
     }
 
     // Daraja expects a 200 acknowledgement

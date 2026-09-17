@@ -1,5 +1,6 @@
 const Request = require("../models/Request");
 const Service = require("../models/Service");
+const Notification = require("../models/Notification");
 const generateRequestNumber = require("../utils/generateRequestNumber");
 const { sendRequestUpdateEmail, sendCompletionEmail } = require("../services/emailService");
 const User = require("../models/User");
@@ -75,6 +76,12 @@ async function updateStatus(req, res, next) {
       } else {
         sendRequestUpdateEmail(student.email, request.service.name, status);
       }
+
+      await Notification.create({
+        user: student._id,
+        title: "Request Update",
+        message: `Your ${request.service.name} request (${request.requestNumber}) is now: ${status}.`,
+      });
     }
 
     res.json(request);

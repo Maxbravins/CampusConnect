@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/service_request.dart';
 import '../services/request_service.dart';
+import '../services/payment_service.dart';
 import '../services/api_service.dart';
 
 class MyRequestsScreen extends StatefulWidget {
@@ -61,6 +62,104 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     return "${date.day}/${date.month}/${date.year}";
   }
 
+  Future<void> _payNow(ServiceRequest request) async {
+    final phoneController = TextEditingController(text: "254708374149");
+    final formKey = GlobalKey<FormState>();
+    String? dialogError;
+    bool isSubmitting = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("Pay with M-Pesa"),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("${request.serviceName} — KES ${request.serviceFee}"),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: "M-Pesa phone number",
+                        border: OutlineInputBorder(),
+                        helperText: "Sandbox test number is pre-filled — leave as is for testing",
+                      ),
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? "Enter a phone number" : null,
+                    ),
+                    if (dialogError != null) ...[
+                      const SizedBox(height: 12),
+                      Text(dialogError!, style: const TextStyle(color: Colors.red)),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.of(dialogContext).pop(),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setDialogState(() {
+                            isSubmitting = true;
+                            dialogError = null;
+                          });
+                          try {
+                            await PaymentService.initiatePayment(
+                              requestId: request.id,
+                              phoneNumber: phoneController.text.trim(),
+                            );
+                            if (!dialogContext.mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Payment request sent. Check for the M-Pesa prompt, then refresh in a few seconds.",
+                                ),
+                                duration: Duration(seconds: 5),
+                              ),
+                            );
+                          } on ApiException catch (e) {
+                            setDialogState(() {
+                              isSubmitting = false;
+                              dialogError = e.message;
+                            });
+                          } catch (e) {
+                            setDialogState(() {
+                              isSubmitting = false;
+                              dialogError = "Could not reach the server.";
+                            });
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Send Request"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,13 +210,18 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             "Fee: KES ${request.serviceFee} · Submitted: ${_formatDate(request.submittedAt)}",
           ),
           isThreeLine: true,
-          trailing: Chip(
-            label: Text(
-              request.status,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-            backgroundColor: _statusColor(request.status),
-          ),
+          trailing: request.status == "Payment Required"
+              ? ElevatedButton(
+                  onPressed: () => _payNow(request),
+                  child: const Text("Pay Now"),
+                )
+              : Chip(
+                  label: Text(
+                    request.status,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                  backgroundColor: _statusColor(request.status),
+                ),
         );
       },
     );
