@@ -3,8 +3,6 @@ import 'api_service.dart';
 import 'storage_service.dart';
 
 class AuthService {
-  /// Registers a new student. Throws [ApiException] on failure
-  /// (e.g. duplicate email, missing fields).
   static Future<AppUser> register({
     required String fullName,
     String? studentId,
@@ -28,8 +26,6 @@ class AuthService {
     return AppUser.fromJson(data["user"]);
   }
 
-  /// Logs in an existing user. Throws [ApiException] on failure
-  /// (wrong credentials, inactive account).
   static Future<AppUser> login({
     required String email,
     required String password,
@@ -51,5 +47,14 @@ class AuthService {
   static Future<bool> isLoggedIn() async {
     final token = await StorageService.getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  /// Fetches the current user's profile using the stored token.
+  /// Used on app startup to restore a session without asking the
+  /// person to log in again. Throws if the token is missing/invalid —
+  /// the caller should treat that as "not logged in".
+  static Future<AppUser> getCurrentUser() async {
+    final data = await ApiService.get("/users/me");
+    return AppUser.fromJson(data);
   }
 }

@@ -47,7 +47,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server.");
+      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
     } finally {
       setState(() => _isLoading = false);
     }

@@ -34,7 +34,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server.");
+      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
     } finally {
       setState(() => _isLoading = false);
     }
@@ -140,7 +140,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                           } catch (e) {
                             setDialogState(() {
                               isSubmitting = false;
-                              dialogError = "Could not reach the server.";
+                              dialogError = "Could not reach the server. Check your connection and try again.";
                             });
                           }
                         },
@@ -193,7 +193,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
     if (_requests.isEmpty) {
       return const Center(
-        child: Text("You haven't submitted any requests yet."),
+        child: Text("You haven't submitted any requests yet. Browse Campus Services to get started."),
       );
     }
 

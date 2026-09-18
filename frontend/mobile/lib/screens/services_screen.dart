@@ -34,7 +34,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server.");
+      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
     } finally {
       setState(() => _isLoading = false);
     }
@@ -92,7 +92,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Could not reach the server.")));
+          .showSnackBar(const SnackBar(content: Text("Could not reach the server. Check your connection and try again.")));
     }
   }
 

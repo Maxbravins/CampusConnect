@@ -25,4 +25,12 @@ class AuthService {
     final token = await StorageService.getToken();
     return token != null && token.isNotEmpty;
   }
+
+  /// Fetches the current user's profile using the stored token.
+  /// Used on app startup to restore an admin session without
+  /// asking for another login.
+  static Future<AppUser> getCurrentUser() async {
+    final data = await ApiService.get("/users/me");
+    return AppUser.fromJson(data);
+  }
 }

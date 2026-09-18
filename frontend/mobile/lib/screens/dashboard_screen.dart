@@ -4,6 +4,8 @@ import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'services_screen.dart';
 import 'my_requests_screen.dart';
+import 'notifications_screen.dart';
+import 'profile_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AppUser user;
@@ -31,7 +33,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -60,11 +62,39 @@ class DashboardScreen extends StatelessWidget {
               child: ListTile(
                 leading: const Icon(Icons.receipt_long),
                 title: const Text("My Requests"),
-                subtitle: const Text("Track the status of your requests"),
+                subtitle: const Text("Track the status of your requests and pay"),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const MyRequestsScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.notifications),
+                title: const Text("Notifications"),
+                subtitle: const Text("Updates on your requests and payments"),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text("Profile"),
+                subtitle: const Text("View and update your details"),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
                   );
                 },
               ),

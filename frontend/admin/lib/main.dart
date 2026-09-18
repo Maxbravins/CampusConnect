@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const CampusConnectAdminApp());
@@ -17,7 +17,7 @@ class CampusConnectAdminApp extends StatelessWidget {
         primarySwatch: Colors.indigo,
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }

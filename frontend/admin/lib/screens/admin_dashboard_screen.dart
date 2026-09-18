@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'services_management_screen.dart';
 import 'requests_management_screen.dart';
 import 'reports_screen.dart';
+import 'students_management_screen.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
 
@@ -46,6 +47,22 @@ class AdminDashboardScreen extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => ReportsScreen(adminName: adminName),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.people),
+                    title: const Text("Manage Students"),
+                    subtitle: const Text("Search students and activate/deactivate accounts"),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => StudentsManagementScreen(adminName: adminName),
                         ),
                       );
                     },

@@ -37,7 +37,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server.");
+      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
     } finally {
       setState(() => _isLoading = false);
     }
@@ -151,7 +151,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                     } on ApiException catch (e) {
                       setDialogState(() => dialogError = e.message);
                     } catch (e) {
-                      setDialogState(() => dialogError = "Could not reach the server.");
+                      setDialogState(() => dialogError = "Could not reach the server. Check your connection and try again.");
                     }
                   },
                   child: const Text("Add"),
