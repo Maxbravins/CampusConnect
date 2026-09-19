@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
-import 'dashboard_screen.dart';
+import 'main_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -52,12 +52,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => DashboardScreen(user: user)),
+        MaterialPageRoute(builder: (_) => MainScreen(user: user)),
       );
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server. Is the backend running?");
+      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -82,7 +82,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
-                  (value == null || value.trim().isEmpty) ? "Enter your full name" : null,
+                      (value == null || value.trim().isEmpty) ? "Enter your full name" : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -119,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: "e.g. 2547XXXXXXXX",
                   ),
                   validator: (value) =>
-                  (value == null || value.trim().isEmpty) ? "Enter your phone number" : null,
+                      (value == null || value.trim().isEmpty) ? "Enter your phone number" : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -153,10 +153,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text("Register"),
                 ),
               ],

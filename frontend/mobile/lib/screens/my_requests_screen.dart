@@ -3,6 +3,9 @@ import '../models/service_request.dart';
 import '../services/request_service.dart';
 import '../services/payment_service.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../utils/dialogs.dart';
+import 'welcome_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   const MyRequestsScreen({super.key});
@@ -38,6 +41,18 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
+    await AuthService.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      (route) => false,
+    );
   }
 
   Color _statusColor(String status) {
@@ -140,7 +155,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                           } catch (e) {
                             setDialogState(() {
                               isSubmitting = false;
-                              dialogError = "Could not reach the server. Check your connection and try again.";
+                              dialogError = "Could not reach the server.";
                             });
                           }
                         },
@@ -167,6 +182,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
         title: const Text("My Requests"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadRequests),
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
       body: _buildBody(),

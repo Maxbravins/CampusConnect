@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'welcome_screen.dart';
-import 'dashboard_screen.dart';
+import 'main_screen.dart';
 
 /// Shown briefly on every app startup (including a browser refresh).
 /// Checks whether a valid session already exists — if so, skips
-/// straight to the dashboard instead of forcing another login.
+/// straight to the main app instead of forcing another login.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -32,11 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
       final user = await AuthService.getCurrentUser();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => DashboardScreen(user: user)),
+        MaterialPageRoute(builder: (_) => MainScreen(user: user)),
       );
     } catch (_) {
-      // Token is invalid/expired, or the account was deactivated —
-      // clear it and fall back to the welcome screen.
       await AuthService.logout();
       _goToWelcome();
     }

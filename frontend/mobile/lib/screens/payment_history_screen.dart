@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/payment_history_item.dart';
 import '../services/payment_service.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../utils/dialogs.dart';
+import 'welcome_screen.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   const PaymentHistoryScreen({super.key});
@@ -39,6 +42,18 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
+    await AuthService.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      (route) => false,
+    );
+  }
+
   Color _statusColor(String status) {
     switch (status) {
       case "Success":
@@ -64,6 +79,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         title: const Text("Payment History"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadPayments),
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
       body: _buildBody(),

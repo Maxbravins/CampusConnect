@@ -3,6 +3,9 @@ import '../models/service.dart';
 import '../services/service_service.dart';
 import '../services/request_service.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../utils/dialogs.dart';
+import 'welcome_screen.dart';
 
 class ServicesScreen extends StatefulWidget {
   const ServicesScreen({super.key});
@@ -38,6 +41,18 @@ class _ServicesScreenState extends State<ServicesScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
+    await AuthService.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      (route) => false,
+    );
   }
 
   Future<void> _confirmAndRequest(CampusService service) async {
@@ -103,6 +118,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
         title: const Text("Campus Services"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadServices),
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
       body: _buildBody(),

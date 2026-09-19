@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/app_notification.dart';
 import '../services/notification_service.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../utils/dialogs.dart';
+import 'welcome_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -39,6 +42,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
+    await AuthService.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      (route) => false,
+    );
+  }
+
   Future<void> _handleTap(AppNotification notification) async {
     if (!notification.read) {
       try {
@@ -62,6 +77,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         title: const Text("Notifications"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadNotifications),
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
       body: _buildBody(),
