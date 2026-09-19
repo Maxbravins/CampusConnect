@@ -117,7 +117,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _statusOptions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final option = _statusOptions[index];
                   final selected = option == _filter;
@@ -165,7 +165,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _requests.length,
-      separatorBuilder: (_, __) => const Divider(),
+      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final request = _requests[index];
         return ListTile(

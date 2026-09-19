@@ -200,7 +200,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _requests.length,
-      separatorBuilder: (_, __) => const Divider(),
+      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final request = _requests[index];
         return ListTile(

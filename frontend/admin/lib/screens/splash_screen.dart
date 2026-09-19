@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'login_screen.dart';
+import 'welcome_screen.dart';
 import 'admin_dashboard_screen.dart';
 
 /// Shown briefly on every app startup (including a browser refresh).
@@ -24,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final loggedIn = await AuthService.isLoggedIn();
 
     if (!loggedIn) {
-      _goToLogin();
+      _goToWelcome();
       return;
     }
 
@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (user.role != "admin") {
         await AuthService.logout();
-        _goToLogin();
+        _goToWelcome();
         return;
       }
 
@@ -43,14 +43,14 @@ class _SplashScreenState extends State<SplashScreen> {
       );
     } catch (_) {
       await AuthService.logout();
-      _goToLogin();
+      _goToWelcome();
     }
   }
 
-  void _goToLogin() {
+  void _goToWelcome() {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
     );
   }
 

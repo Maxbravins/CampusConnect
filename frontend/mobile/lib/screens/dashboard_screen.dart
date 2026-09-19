@@ -8,6 +8,7 @@ import 'my_requests_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'payment_history_screen.dart';
+import 'announcements_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AppUser user;
@@ -114,6 +115,22 @@ class DashboardScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.campaign),
+                title: const Text("Announcements"),
+                subtitle: const Text("View important campus announcements"),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AnnouncementsScreen(),
+                    ),
                   );
                 },
               ),

@@ -92,7 +92,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return ListView.separated(
       itemCount: _notifications.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final notification = _notifications[index];
         return ListTile(

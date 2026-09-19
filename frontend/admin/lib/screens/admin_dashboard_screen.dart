@@ -6,6 +6,7 @@ import 'students_management_screen.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
 import '../utils/dialogs.dart';
+import 'announcements_management_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   final String adminName;
@@ -36,7 +37,7 @@ class AdminDashboardScreen extends StatelessWidget {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -99,6 +100,40 @@ class AdminDashboardScreen extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => RequestsManagementScreen(adminName: adminName),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.campaign),
+                    title: const Text("Manage Announcements"),
+                    subtitle: const Text("Create and manage campus announcements"),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AnnouncementsManagementScreen(adminName: adminName),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.campaign),
+                    title: const Text("Announcements"),
+                    subtitle: const Text("Create and publish announcements to students"),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AnnouncementsManagementScreen(
+                            adminName: adminName,
+                          ),
                         ),
                       );
                     },

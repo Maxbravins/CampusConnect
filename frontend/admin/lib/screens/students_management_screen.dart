@@ -132,7 +132,7 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: _users.length,
-      separatorBuilder: (_, __) => const Divider(),
+      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final user = _users[index];
         final isActive = user.status == "active";

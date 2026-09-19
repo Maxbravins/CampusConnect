@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(const CampusConnectAdminApp());
@@ -13,10 +14,7 @@ class CampusConnectAdminApp extends StatelessWidget {
     return MaterialApp(
       title: "CampusConnect Admin",
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
       home: const SplashScreen(),
     );
   }

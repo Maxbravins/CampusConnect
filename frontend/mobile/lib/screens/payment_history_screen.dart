@@ -97,7 +97,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _payments.length,
-      separatorBuilder: (_, __) => const Divider(),
+      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final payment = _payments[index];
         return ListTile(

@@ -10,6 +10,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const reportRoutes = require("./routes/reportRoutes");
+const announcementRoutes = require("./routes/announcementRoutes");
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/requests", requestRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/announcements", announcementRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
