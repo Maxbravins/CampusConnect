@@ -3,6 +3,7 @@ import '../models/admin_user.dart';
 import '../services/user_management_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../utils/dialogs.dart';
 import 'login_screen.dart';
 
 class StudentsManagementScreen extends StatefulWidget {
@@ -51,6 +52,9 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
   }
 
   Future<void> _logout() async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
     await AuthService.logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

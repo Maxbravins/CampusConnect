@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
-import 'login_screen.dart';
+import '../utils/dialogs.dart';
+import 'welcome_screen.dart';
 import 'services_screen.dart';
 import 'my_requests_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
+import 'payment_history_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AppUser user;
@@ -13,10 +15,13 @@ class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, required this.user});
 
   Future<void> _logout(BuildContext context) async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
     await AuthService.logout();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
       (route) => false,
     );
   }
@@ -74,6 +79,20 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Card(
               child: ListTile(
+                leading: const Icon(Icons.payment),
+                title: const Text("Payment History"),
+                subtitle: const Text("View your past M-Pesa payments"),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PaymentHistoryScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
                 leading: const Icon(Icons.notifications),
                 title: const Text("Notifications"),
                 subtitle: const Text("Updates on your requests and payments"),
@@ -97,14 +116,6 @@ class DashboardScreen extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => const ProfileScreen()),
                   );
                 },
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Card(
-              child: ListTile(
-                leading: Icon(Icons.payment, color: Colors.grey),
-                title: Text("Payment History", style: TextStyle(color: Colors.grey)),
-                subtitle: Text("Coming next"),
               ),
             ),
           ],

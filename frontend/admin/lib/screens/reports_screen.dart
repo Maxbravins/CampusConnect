@@ -3,6 +3,7 @@ import '../models/dashboard_stats.dart';
 import '../services/report_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../utils/dialogs.dart';
 import 'login_screen.dart';
 
 class ReportsScreen extends StatefulWidget {
@@ -44,6 +45,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _logout() async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
     await AuthService.logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

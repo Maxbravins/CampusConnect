@@ -5,6 +5,7 @@ import 'reports_screen.dart';
 import 'students_management_screen.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
+import '../utils/dialogs.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   final String adminName;
@@ -12,6 +13,9 @@ class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key, required this.adminName});
 
   Future<void> _logout(BuildContext context) async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
     await AuthService.logout();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

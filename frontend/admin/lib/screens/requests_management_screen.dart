@@ -3,6 +3,7 @@ import '../models/admin_request.dart';
 import '../services/request_management_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../utils/dialogs.dart';
 import 'login_screen.dart';
 
 class RequestsManagementScreen extends StatefulWidget {
@@ -54,6 +55,9 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
   }
 
   Future<void> _logout() async {
+    final confirmed = await confirmLogout(context);
+    if (!confirmed) return;
+
     await AuthService.logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
