@@ -4,12 +4,18 @@ import '../services/service_management_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../utils/dialogs.dart';
+import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
 class ServicesManagementScreen extends StatefulWidget {
   final String adminName;
+  final bool embedded;
 
-  const ServicesManagementScreen({super.key, required this.adminName});
+  const ServicesManagementScreen({
+    super.key,
+    required this.adminName,
+    this.embedded = false,
+  });
 
   @override
   State<ServicesManagementScreen> createState() => _ServicesManagementScreenState();
@@ -90,7 +96,8 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text("Add Service"),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text("Add Campus Service", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark)),
               content: SingleChildScrollView(
                 child: Form(
                   key: formKey,
@@ -99,13 +106,15 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                     children: [
                       TextFormField(
                         controller: nameController,
-                        decoration: const InputDecoration(labelText: "Service name"),
+                        decoration: const InputDecoration(labelText: "Service Name"),
                         validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
                       ),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: descriptionController,
                         decoration: const InputDecoration(labelText: "Description"),
                       ),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: feeController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -116,10 +125,11 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                           return null;
                         },
                       ),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: daysController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: "Processing days"),
+                        decoration: const InputDecoration(labelText: "Processing Time (Days)"),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return "Required";
                           if (int.tryParse(v) == null) return "Enter a whole number";
@@ -127,8 +137,8 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                         },
                       ),
                       if (dialogError != null) ...[
-                        const SizedBox(height: 8),
-                        Text(dialogError!, style: const TextStyle(color: Colors.red)),
+                        const SizedBox(height: 12),
+                        Text(dialogError!, style: const TextStyle(color: Colors.red, fontSize: 13)),
                       ],
                     ],
                   ),
@@ -158,7 +168,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                       setDialogState(() => dialogError = "Could not reach the server. Check your connection and try again.");
                     }
                   },
-                  child: const Text("Add"),
+                  child: const Text("Add Service"),
                 ),
               ],
             );
@@ -170,9 +180,23 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _openAddServiceDialog,
+          backgroundColor: AppTheme.electricIndigo,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.add),
+          label: const Text("Add Service"),
+        ),
+        body: _buildBody(),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Services — ${widget.adminName}"),
+        title: Text("Services Management — ${widget.adminName}"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadServices),
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
@@ -180,6 +204,8 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddServiceDialog,
+        backgroundColor: AppTheme.electricIndigo,
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text("Add Service"),
       ),
@@ -189,7 +215,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppTheme.electricIndigo));
     }
 
     if (_errorMessage != null) {
@@ -206,34 +232,124 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
     }
 
     if (_services.isEmpty) {
-      return const Center(child: Text("No services yet. Tap \"Add Service\" to create one."));
+      return const Center(
+        child: Text("No services created yet. Tap \"Add Service\" to create one."),
+      );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: _services.length,
-      separatorBuilder: (_, _) => const Divider(),
-      itemBuilder: (context, index) {
-        final service = _services[index];
-        return ListTile(
-          title: Text(service.name),
-          subtitle: Text(
-            "${service.description}\nFee: KES ${service.fee} · ${service.processingDays} day(s) · ${service.status}",
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Campus Services",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                  ),
+                  SizedBox(height: 4),
+                  Text("Manage service offerings, fees, and operational status", style: TextStyle(color: Colors.grey, fontSize: 14)),
+                ],
+              ),
+              IconButton.filledTonal(
+                icon: const Icon(Icons.refresh, color: AppTheme.electricIndigo),
+                onPressed: _loadServices,
+                style: IconButton.styleFrom(backgroundColor: AppTheme.softLilacContainer),
+              ),
+            ],
           ),
-          isThreeLine: true,
-          trailing: service.status == "active"
-              ? IconButton(
-                  icon: const Icon(Icons.block, color: Colors.red),
-                  tooltip: "Deactivate",
-                  onPressed: () => _deactivate(service),
-                )
-              : IconButton(
-                  icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-                  tooltip: "Reactivate",
-                  onPressed: () => _reactivate(service),
+          const SizedBox(height: 20),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _services.length,
+            itemBuilder: (context, index) {
+              final service = _services[index];
+              final isActive = service.status == "active";
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.softLilacContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.miscellaneous_services, color: AppTheme.electricIndigo, size: 24),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  service.name,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isActive ? const Color(0xFFD1FAE5) : Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    isActive ? "Active" : "Inactive",
+                                    style: TextStyle(
+                                      color: isActive ? const Color(0xFF10B981) : Colors.grey.shade600,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(service.description, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Text("Fee: KES ${service.fee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
+                                const SizedBox(width: 16),
+                                Text("Processing: ${service.processingDays} day(s)", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      isActive
+                          ? OutlinedButton.icon(
+                              onPressed: () => _deactivate(service),
+                              icon: const Icon(Icons.block, size: 16, color: Colors.red),
+                              label: const Text("Deactivate", style: TextStyle(color: Colors.red)),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFFCA5A5)),
+                              ),
+                            )
+                          : ElevatedButton.icon(
+                              onPressed: () => _reactivate(service),
+                              icon: const Icon(Icons.check_circle_outline, size: 16),
+                              label: const Text("Reactivate"),
+                            ),
+                    ],
+                  ),
                 ),
-        );
-      },
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
+

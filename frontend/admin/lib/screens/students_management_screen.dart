@@ -4,12 +4,18 @@ import '../services/user_management_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../utils/dialogs.dart';
+import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
 class StudentsManagementScreen extends StatefulWidget {
   final String adminName;
+  final bool embedded;
 
-  const StudentsManagementScreen({super.key, required this.adminName});
+  const StudentsManagementScreen({
+    super.key,
+    required this.adminName,
+    this.embedded = false,
+  });
 
   @override
   State<StudentsManagementScreen> createState() => _StudentsManagementScreenState();
@@ -76,40 +82,77 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return _buildContent();
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Students — ${widget.adminName}"),
+        title: Text("Students Management — ${widget.adminName}"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadUsers),
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: "Search by name, email, or student ID",
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: _loadUsers,
-                ),
+      body: _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          color: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Student Directory",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                      ),
+                      SizedBox(height: 4),
+                      Text("Search student accounts and activate or deactivate access", style: TextStyle(color: Colors.grey, fontSize: 14)),
+                    ],
+                  ),
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.refresh, color: AppTheme.electricIndigo),
+                    onPressed: _loadUsers,
+                    style: IconButton.styleFrom(backgroundColor: AppTheme.softLilacContainer),
+                  ),
+                ],
               ),
-              onSubmitted: (_) => _loadUsers(),
-            ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: "Search by student name, email, or ID...",
+                  prefixIcon: const Icon(Icons.search, color: AppTheme.electricIndigo),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    onPressed: _loadUsers,
+                  ),
+                ),
+                onSubmitted: (_) => _loadUsers(),
+              ),
+            ],
           ),
-          Expanded(child: _buildBody()),
-        ],
-      ),
+        ),
+        const Divider(height: 1, color: AppTheme.softLilacBorder),
+        Expanded(child: _buildBody()),
+      ],
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppTheme.electricIndigo));
     }
 
     if (_errorMessage != null) {
@@ -126,46 +169,93 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
     }
 
     if (_users.isEmpty) {
-      return const Center(child: Text("No students found. Try a different search."));
+      return const Center(
+        child: Text("No students found. Try a different search query.", style: TextStyle(color: Colors.grey)),
+      );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return ListView.builder(
+      padding: const EdgeInsets.all(24),
       itemCount: _users.length,
-      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final user = _users[index];
         final isActive = user.status == "active";
-        return ListTile(
-          title: Text(user.fullName),
-          subtitle: Text(
-            "${user.email} · ${user.phone}\n"
-            "Student ID: ${user.studentId ?? "Not set"}",
-          ),
-          isThreeLine: true,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Chip(
-                label: Text(
-                  isActive ? "Active" : "Inactive",
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: AppTheme.softLilacContainer,
+                  child: Text(
+                    user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : "S",
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo),
+                  ),
                 ),
-                backgroundColor: isActive ? Colors.green : Colors.grey,
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(
-                  isActive ? Icons.block : Icons.check_circle_outline,
-                  color: isActive ? Colors.red : Colors.green,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            user.fullName,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isActive ? const Color(0xFFD1FAE5) : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              isActive ? "Active" : "Inactive",
+                              style: TextStyle(
+                                color: isActive ? const Color(0xFF10B981) : Colors.grey.shade600,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "${user.email} · ${user.phone}",
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Student ID: ${user.studentId ?? "Not assigned"}",
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
-                tooltip: isActive ? "Deactivate" : "Activate",
-                onPressed: () => _toggleStatus(user),
-              ),
-            ],
+                isActive
+                    ? OutlinedButton.icon(
+                        onPressed: () => _toggleStatus(user),
+                        icon: const Icon(Icons.block, size: 16, color: Colors.red),
+                        label: const Text("Deactivate", style: TextStyle(color: Colors.red)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFFCA5A5)),
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: () => _toggleStatus(user),
+                        icon: const Icon(Icons.check_circle_outline, size: 16),
+                        label: const Text("Activate"),
+                      ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 }
+

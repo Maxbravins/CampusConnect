@@ -8,6 +8,7 @@ import 'services_screen.dart';
 import 'my_requests_screen.dart';
 import 'notifications_screen.dart';
 import '../services/notification_service.dart';
+import '../theme/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
   final AppUser user;
@@ -36,8 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUnreadNotifications() async {
     try {
-      final notifications =
-          await NotificationService.listMyNotifications();
+      final notifications = await NotificationService.listMyNotifications();
 
       if (!mounted) return;
 
@@ -63,8 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadLatestAnnouncement() async {
     try {
-      final announcements =
-          await AnnouncementService.listAnnouncements();
+      final announcements = await AnnouncementService.listAnnouncements();
 
       if (!mounted) return;
 
@@ -97,10 +96,28 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.softLilacBg,
       appBar: AppBar(
-        title: const Text("CampusConnect"),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.school, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              "CampusConnect",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ],
+        ),
       ),
       body: RefreshIndicator(
+        color: AppTheme.electricIndigo,
         onRefresh: _loadLatestAnnouncement,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -108,25 +125,58 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                "Welcome, ${widget.user.fullName}!",
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
+              // Welcome Banner Card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.electricIndigo, AppTheme.electricIndigoLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.electricIndigo.withValues(alpha: 0.25),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-              ),
-
-              const SizedBox(height: 6),
-
-              const Text(
-                "Access your campus services quickly and easily.",
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Welcome, ${widget.user.fullName}! 👋",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      "Access your campus services and payments quickly.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xDDFFFFFF),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
               const SizedBox(height: 24),
+
+              const Text(
+                "Quick Actions",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.electricIndigoDark,
+                ),
+              ),
+              const SizedBox(height: 12),
 
               Row(
                 children: [
@@ -149,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _quickAction(
                       context,
                       icon: Icons.receipt_long,
-                      title: "Requests",
+                      title: "My Requests",
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -169,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: _quickAction(
                       context,
-                      icon: Icons.notifications,
+                      icon: Icons.notifications_none_outlined,
                       title: "Notifications",
                       badgeCount: _isLoadingNotifications
                           ? null
@@ -187,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: _quickAction(
                       context,
-                      icon: Icons.campaign,
+                      icon: Icons.campaign_outlined,
                       title: "Announcements",
                       onTap: () {
                         Navigator.of(context).push(
@@ -206,8 +256,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const Text(
                 "Latest Announcement",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: AppTheme.electricIndigoDark,
                 ),
               ),
 
@@ -218,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding: EdgeInsets.all(24),
                     child: Center(
-                      child: CircularProgressIndicator(),
+                      child: CircularProgressIndicator(color: AppTheme.electricIndigo),
                     ),
                   ),
                 )
@@ -227,7 +278,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Text(
-                      "No announcements yet.",
+                      "No announcements published yet.",
+                      style: TextStyle(color: Colors.grey),
                     ),
                   ),
                 )
@@ -240,14 +292,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.campaign),
-                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.softLilacContainer,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.campaign, color: AppTheme.electricIndigo),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 _latestAnnouncement!.title,
                                 style: const TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
+                                  color: AppTheme.electricIndigoDark,
                                 ),
                               ),
                             ),
@@ -258,33 +318,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         Text(
                           _latestAnnouncement!.message,
-                          style: const TextStyle(fontSize: 15),
+                          style: TextStyle(fontSize: 14, color: Colors.grey.shade800),
                         ),
 
                         const SizedBox(height: 12),
 
-                        Text(
-                          _formatDate(
-                            _latestAnnouncement!.createdAt,
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const AnnouncementsScreen(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDate(_latestAnnouncement!.createdAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
                               ),
-                            );
-                          },
-                          child: const Text("View all announcements"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const AnnouncementsScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text("View all"),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -307,10 +366,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Card(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.symmetric(
-            vertical: 22,
+            vertical: 20,
             horizontal: 12,
           ),
           child: Column(
@@ -318,21 +377,29 @@ class _HomeScreenState extends State<HomeScreen> {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Icon(
-                    icon,
-                    size: 32,
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.softLilacContainer,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 26,
+                      color: AppTheme.electricIndigo,
+                    ),
                   ),
                   if (badgeCount != null && badgeCount > 0)
                     Positioned(
-                      right: -8,
-                      top: -8,
+                      right: -6,
+                      top: -6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
-                          vertical: 3,
+                          vertical: 2,
                         ),
                         decoration: const BoxDecoration(
-                          color: Colors.red,
+                          color: Color(0xFFEF4444),
                           shape: BoxShape.circle,
                         ),
                         child: Text(
@@ -347,11 +414,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Text(
                 title,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: AppTheme.electricIndigoDark,
                 ),
               ),
             ],
@@ -361,3 +430,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

@@ -4,6 +4,7 @@ import '../services/payment_service.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../utils/dialogs.dart';
+import '../theme/app_theme.dart';
 import 'welcome_screen.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
@@ -57,11 +58,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Color _statusColor(String status) {
     switch (status) {
       case "Success":
-        return Colors.green;
+        return const Color(0xFF10B981);
       case "Failed":
         return Colors.red;
       case "Pending":
-        return Colors.orange;
+        return const Color(0xFFF59E0B);
       default:
         return Colors.grey;
     }
@@ -75,6 +76,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.softLilacBg,
       appBar: AppBar(
         title: const Text("Payment History"),
         actions: [
@@ -88,7 +90,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppTheme.electricIndigo));
     }
 
     if (_errorMessage != null) {
@@ -106,45 +108,78 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
     if (_payments.isEmpty) {
       return const Center(
-        child: Text("No payments yet. Pay for a request to see it here."),
+        child: Text("No payments yet. Pay for a request to see it here.", style: TextStyle(color: Colors.grey)),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
       itemCount: _payments.length,
-      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final payment = _payments[index];
-        return ListTile(
-          title: Text(payment.serviceName),
-          subtitle: Text(
-            "Ref: ${payment.requestNumber}\n"
-            "${payment.phoneNumber} · ${_formatDate(payment.createdAt)}"
-            "${payment.transactionReference != null ? '\nTxn: ${payment.transactionReference}' : ''}",
-          ),
-          isThreeLine: true,
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "KES ${payment.amount}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Chip(
-                label: Text(
-                  payment.status,
-                  style: const TextStyle(color: Colors.white, fontSize: 11),
+        final statusColor = _statusColor(payment.status);
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.softLilacContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.payments_outlined, color: AppTheme.electricIndigo, size: 24),
                 ),
-                backgroundColor: _statusColor(payment.status),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        payment.serviceName,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                      ),
+                      const SizedBox(height: 4),
+                      Text("Ref: ${payment.requestNumber}", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      Text("${payment.phoneNumber} · ${_formatDate(payment.createdAt)}", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      if (payment.transactionReference != null) ...[
+                        const SizedBox(height: 2),
+                        Text("Txn: ${payment.transactionReference}", style: const TextStyle(color: AppTheme.electricIndigo, fontSize: 12, fontWeight: FontWeight.w500)),
+                      ],
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      "KES ${payment.amount}",
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark, fontSize: 15),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        payment.status,
+                        style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 }
+

@@ -5,6 +5,7 @@ import '../services/request_service.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../utils/dialogs.dart';
+import '../theme/app_theme.dart';
 import 'welcome_screen.dart';
 
 class ServicesScreen extends StatefulWidget {
@@ -59,11 +60,31 @@ class _ServicesScreenState extends State<ServicesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(service.name),
-        content: Text(
-          "${service.description}\n\nFee: KES ${service.fee}\n"
-          "Estimated processing: ${service.processingDays} day(s)\n\n"
-          "Submit a request for this service?",
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(service.name, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(service.description, style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.softLilacContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Fee: KES ${service.fee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
+                  Text("Time: ${service.processingDays} day(s)", style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text("Would you like to submit a request for this service?", style: TextStyle(fontSize: 13, color: Colors.grey)),
+          ],
         ),
         actions: [
           TextButton(
@@ -87,16 +108,39 @@ class _ServicesScreenState extends State<ServicesScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text("Request Submitted"),
-          content: Text(
-            "Your reference number is:\n\n${request["requestNumber"]}\n\n"
-            "Status: ${request["status"]}\n\n"
-            "You can use this reference to track your request.",
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text("Request Submitted 🎉", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Your request has been successfully created!"),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.softLilacContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.softLilacBorder),
+                ),
+                child: Column(
+                  children: [
+                    const Text("REFERENCE NUMBER", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
+                    const SizedBox(height: 4),
+                    Text(
+                      "${request["requestNumber"]}",
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text("Status: ${request["status"]}", style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            ],
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("OK"),
+              child: const Text("Done"),
             ),
           ],
         ),
@@ -114,6 +158,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.softLilacBg,
       appBar: AppBar(
         title: const Text("Campus Services"),
         actions: [
@@ -127,7 +172,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppTheme.electricIndigo));
     }
 
     if (_errorMessage != null) {
@@ -147,22 +192,67 @@ class _ServicesScreenState extends State<ServicesScreen> {
       return const Center(child: Text("No services are available right now."));
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
       itemCount: _services.length,
-      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final service = _services[index];
-        return ListTile(
-          title: Text(service.name),
-          subtitle: Text(
-            "${service.description}\nFee: KES ${service.fee} · ${service.processingDays} day(s)",
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () => _confirmAndRequest(service),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.softLilacContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.miscellaneous_services, color: AppTheme.electricIndigo, size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          service.name,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          service.description,
+                          style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text(
+                              "KES ${service.fee}",
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo, fontSize: 13),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              "⏱ ${service.processingDays} day(s)",
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: AppTheme.electricIndigo),
+                ],
+              ),
+            ),
           ),
-          isThreeLine: true,
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _confirmAndRequest(service),
         );
       },
     );
   }
 }
+

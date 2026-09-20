@@ -4,6 +4,7 @@ import '../services/profile_service.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../utils/dialogs.dart';
+import '../theme/app_theme.dart';
 import 'welcome_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -86,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       setState(() {
         _profile = updated;
-        _saveMessage = "Profile updated.";
+        _saveMessage = "Profile updated successfully!";
       });
     } on ApiException catch (e) {
       setState(() => _saveMessage = e.message);
@@ -100,8 +101,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.softLilacBg,
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: const Text("My Profile"),
         actions: [
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
@@ -112,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppTheme.electricIndigo));
     }
 
     if (_errorMessage != null) {
@@ -131,65 +133,116 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = _profile!;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextFormField(
-              initialValue: profile.email,
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
+            // Profile Header Card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 36,
+                      backgroundColor: AppTheme.softLilacContainer,
+                      child: Text(
+                        profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : "S",
+                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.electricIndigo),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      profile.fullName,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(profile.email, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              initialValue: profile.studentId ?? "Not set",
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: "Student ID",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _fullNameController,
-              decoration: const InputDecoration(
-                labelText: "Full name",
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: "Phone",
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
-            ),
 
-            if (_saveMessage != null) ...[
-              const SizedBox(height: 16),
-              Text(_saveMessage!, textAlign: TextAlign.center),
-            ],
+            // Profile Details Form Card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      initialValue: profile.email,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        labelText: "Email Address",
+                        prefixIcon: Icon(Icons.email_outlined, color: AppTheme.electricIndigo),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      initialValue: profile.studentId ?? "Not assigned",
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        labelText: "Student ID",
+                        prefixIcon: Icon(Icons.badge_outlined, color: AppTheme.electricIndigo),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _fullNameController,
+                      decoration: const InputDecoration(
+                        labelText: "Full Name",
+                        prefixIcon: Icon(Icons.person_outline, color: AppTheme.electricIndigo),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: "Phone Number",
+                        prefixIcon: Icon(Icons.phone_outlined, color: AppTheme.electricIndigo),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
+                    ),
 
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isSaving ? null : _save,
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-              child: _isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text("Save Changes"),
+                    if (_saveMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.softLilacContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          _saveMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppTheme.electricIndigo, fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _save,
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Text("Save Changes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -197,3 +250,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+

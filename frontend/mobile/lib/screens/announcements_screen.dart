@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/announcement.dart';
 import '../services/announcement_service.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 
 class AnnouncementsScreen extends StatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -64,6 +65,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.softLilacBg,
       appBar: AppBar(
         title: const Text("Announcements"),
         actions: [
@@ -80,7 +82,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(color: AppTheme.electricIndigo),
       );
     }
 
@@ -94,6 +96,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
               const Icon(
                 Icons.error_outline,
                 size: 50,
+                color: Colors.red,
               ),
               const SizedBox(height: 12),
               Text(
@@ -113,14 +116,15 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
 
     if (_announcements.isEmpty) {
       return const Center(
-        child: Text("No announcements yet."),
+        child: Text("No announcements published yet.", style: TextStyle(color: Colors.grey)),
       );
     }
 
     return RefreshIndicator(
+      color: AppTheme.electricIndigo,
       onRefresh: _loadAnnouncements,
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         itemCount: _announcements.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
@@ -128,20 +132,28 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
 
           return Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.campaign),
-                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.softLilacContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.campaign, color: AppTheme.electricIndigo),
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           announcement.title,
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: AppTheme.electricIndigoDark,
                           ),
                         ),
                       ),
@@ -150,7 +162,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                   const SizedBox(height: 12),
                   Text(
                     announcement.message,
-                    style: const TextStyle(fontSize: 15),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade800),
                   ),
                   const SizedBox(height: 12),
                   Text(

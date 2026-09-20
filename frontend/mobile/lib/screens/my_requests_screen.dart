@@ -5,6 +5,7 @@ import '../services/payment_service.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../utils/dialogs.dart';
+import '../theme/app_theme.dart';
 import 'welcome_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
@@ -55,23 +56,6 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     );
   }
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case "Pending":
-        return Colors.grey;
-      case "Payment Required":
-        return Colors.orange;
-      case "Paid":
-        return Colors.blue;
-      case "Processing":
-        return Colors.purple;
-      case "Completed":
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
   String _formatDate(DateTime? date) {
     if (date == null) return "";
     return "${date.day}/${date.month}/${date.year}";
@@ -90,29 +74,43 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text("Pay with M-Pesa"),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text("Pay via M-Pesa", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark)),
               content: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${request.serviceName} — KES ${request.serviceFee}"),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.softLilacContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(request.serviceName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text("KES ${request.serviceFee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
-                        labelText: "M-Pesa phone number",
-                        border: OutlineInputBorder(),
-                        helperText: "Sandbox test number is pre-filled — leave as is for testing",
+                        labelText: "M-Pesa Phone Number",
+                        prefixIcon: Icon(Icons.phone_android, color: AppTheme.electricIndigo),
+                        helperText: "Sandbox test number is pre-filled for testing",
                       ),
                       validator: (v) =>
                           (v == null || v.trim().isEmpty) ? "Enter a phone number" : null,
                     ),
                     if (dialogError != null) ...[
                       const SizedBox(height: 12),
-                      Text(dialogError!, style: const TextStyle(color: Colors.red)),
+                      Text(dialogError!, style: const TextStyle(color: Colors.red, fontSize: 13)),
                     ],
                   ],
                 ),
@@ -142,11 +140,12 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  "Payment request sent. Check for the M-Pesa prompt, then refresh in a few seconds.",
+                                  "Payment STK push sent! Complete prompt on phone, then refresh.",
                                 ),
                                 duration: Duration(seconds: 5),
                               ),
                             );
+                            _loadRequests();
                           } on ApiException catch (e) {
                             setDialogState(() {
                               isSubmitting = false;
@@ -163,9 +162,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       ? const SizedBox(
                           height: 18,
                           width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
-                      : const Text("Send Request"),
+                      : const Text("Send STK Push"),
                 ),
               ],
             );
@@ -178,6 +177,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.softLilacBg,
       appBar: AppBar(
         title: const Text("My Requests"),
         actions: [
@@ -191,7 +191,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppTheme.electricIndigo));
     }
 
     if (_errorMessage != null) {
@@ -213,33 +213,77 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
       itemCount: _requests.length,
-      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final request = _requests[index];
-        return ListTile(
-          title: Text(request.serviceName),
-          subtitle: Text(
-            "Ref: ${request.requestNumber}\n"
-            "Fee: KES ${request.serviceFee} · Submitted: ${_formatDate(request.submittedAt)}",
-          ),
-          isThreeLine: true,
-          trailing: request.status == "Payment Required"
-              ? ElevatedButton(
-                  onPressed: () => _payNow(request),
-                  child: const Text("Pay Now"),
-                )
-              : Chip(
-                  label: Text(
-                    request.status,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+        final statusColor = AppTheme.getStatusColor(request.status);
+        final statusBg = AppTheme.getStatusBgColor(request.status);
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.softLilacContainer,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  backgroundColor: _statusColor(request.status),
+                  child: const Icon(Icons.receipt_long, color: AppTheme.electricIndigo, size: 24),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request.serviceName,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                      ),
+                      const SizedBox(height: 4),
+                      Text("Ref: ${request.requestNumber}", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Text("Fee: KES ${request.serviceFee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo, fontSize: 13)),
+                          const SizedBox(width: 12),
+                          Text("Submitted: ${_formatDate(request.submittedAt)}", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                request.status == "Payment Required"
+                    ? ElevatedButton.icon(
+                        onPressed: () => _payNow(request),
+                        icon: const Icon(Icons.payment, size: 16),
+                        label: const Text("Pay Now"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEA580C),
+                        ),
+                      )
+                    : Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusBg,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          request.status,
+                          style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+              ],
+            ),
+          ),
         );
       },
     );
   }
 }
+
