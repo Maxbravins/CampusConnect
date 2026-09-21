@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 /// Central place for CampusConnect Student App's visual style with Electric Indigo & Soft Lilac.
 class AppTheme {
   // Brand Palette Constants
-  static const Color electricIndigo = Color(0xFF4F46E5); // Primary Electric Indigo
-  static const Color electricIndigoLight = Color(0xFF6366F1); // Accent Electric Indigo
-  static const Color electricIndigoDark = Color(0xFF3730A3); // Dark Electric Indigo
+  static const Color electricIndigo = Color(0xFF3F51B5); // Primary Electric Indigo
+  static const Color electricIndigoLight = Color(0xFF5C6BC0); // Accent Electric Indigo
+  static const Color electricIndigoDark = Color(0xFF303F9F); // Dark Electric Indigo
   static const Color softLilacBg = Color(0xFFF8F7FF); // Soft Lilac Scaffold background
   static const Color softLilacContainer = Color(0xFFF3E8FF); // Soft Lilac card fill
   static const Color softLilacBorder = Color(0xFFE9D5FF); // Soft Lilac border accent
@@ -14,9 +14,9 @@ class AppTheme {
 
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: electricIndigo,
-      primary: electricIndigo,
-      secondary: electricIndigoLight,
+      seedColor: const Color(0xFF3F51B5),
+      primary: const Color(0xFF3F51B5),
+      secondary: const Color(0xFF3F51B5),
       surface: softLilacBg,
       surfaceContainerLowest: Colors.white,
       surfaceContainerLow: const Color(0xFFFAFAFE),
@@ -30,7 +30,7 @@ class AppTheme {
       scaffoldBackgroundColor: softLilacBg,
 
       appBarTheme: const AppBarTheme(
-        backgroundColor: electricIndigo,
+        backgroundColor: Color(0xFF3F51B5),
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
@@ -53,7 +53,7 @@ class AppTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: electricIndigo,
+          backgroundColor: const Color(0xFF3F51B5),
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -66,7 +66,7 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: electricIndigo,
+          foregroundColor: const Color(0xFF3F51B5),
           side: const BorderSide(color: softLilacBorder, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           shape: RoundedRectangleBorder(
@@ -99,20 +99,20 @@ class AppTheme {
         indicatorColor: softLilacContainer,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: electricIndigo);
+            return const IconThemeData(color: Color(0xFF3F51B5));
           }
           return IconThemeData(color: Colors.grey.shade600);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(color: electricIndigo, fontWeight: FontWeight.bold, fontSize: 12);
+            return const TextStyle(color: Color(0xFF3F51B5), fontWeight: FontWeight.bold, fontSize: 12);
           }
           return TextStyle(color: Colors.grey.shade700, fontSize: 12);
         }),
       ),
 
       chipTheme: ChipThemeData(
-        labelStyle: const TextStyle(color: electricIndigo, fontSize: 12, fontWeight: FontWeight.w600),
+        labelStyle: const TextStyle(color: Color(0xFF3F51B5), fontSize: 12, fontWeight: FontWeight.w600),
         backgroundColor: softLilacBadge,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         shape: RoundedRectangleBorder(
@@ -138,7 +138,7 @@ class AppTheme {
       case "Payment Required":
         return const Color(0xFFEA580C); // Warm Orange
       case "Paid":
-        return electricIndigo; // Electric Indigo
+        return const Color(0xFF3F51B5); // Electric Indigo
       case "Processing":
         return const Color(0xFF8B5CF6); // Soft Purple
       case "Completed":

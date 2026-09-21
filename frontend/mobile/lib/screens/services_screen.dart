@@ -20,10 +20,30 @@ class _ServicesScreenState extends State<ServicesScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
   @override
   void initState() {
     super.initState();
     _loadServices();
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<CampusService> get _filteredServices {
+    if (_searchQuery.isEmpty) return _services;
+    return _services.where((service) {
+      return service.name.toLowerCase().contains(_searchQuery) ||
+          service.description.toLowerCase().contains(_searchQuery);
+    }).toList();
   }
 
   Future<void> _loadServices() async {
@@ -166,7 +186,38 @@ class _ServicesScreenState extends State<ServicesScreen> {
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
-      body: _buildBody(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Search services...",
+                prefixIcon: const Icon(Icons.search, color: AppTheme.electricIndigo),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => _searchController.clear(),
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppTheme.softLilacBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppTheme.softLilacBorder),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              ),
+            ),
+          ),
+          Expanded(child: _buildBody()),
+        ],
+      ),
     );
   }
 
@@ -192,11 +243,17 @@ class _ServicesScreenState extends State<ServicesScreen> {
       return const Center(child: Text("No services are available right now."));
     }
 
+    final filtered = _filteredServices;
+
+    if (filtered.isEmpty) {
+      return const Center(child: Text("No services match your search."));
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: _services.length,
+      itemCount: filtered.length,
       itemBuilder: (context, index) {
-        final service = _services[index];
+        final service = filtered[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: InkWell(
@@ -255,4 +312,3 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 }
-

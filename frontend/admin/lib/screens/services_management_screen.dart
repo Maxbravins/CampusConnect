@@ -26,10 +26,30 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
   @override
   void initState() {
     super.initState();
     _loadServices();
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<CampusService> get _filteredServices {
+    if (_searchQuery.isEmpty) return _services;
+    return _services.where((service) {
+      return service.name.toLowerCase().contains(_searchQuery) ||
+          service.description.toLowerCase().contains(_searchQuery);
+    }).toList();
   }
 
   Future<void> _loadServices() async {
@@ -237,6 +257,8 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
       );
     }
 
+    final filtered = _filteredServices;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -263,93 +285,123 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _services.length,
-            itemBuilder: (context, index) {
-              final service = _services[index];
-              final isActive = service.status == "active";
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.softLilacContainer,
-                          borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: "Search services...",
+              prefixIcon: const Icon(Icons.search, color: AppTheme.electricIndigo),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => _searchController.clear(),
+                    )
+                  : null,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppTheme.softLilacBorder),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppTheme.softLilacBorder),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (filtered.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: Text("No services match your search.")),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filtered.length,
+              itemBuilder: (context, index) {
+                final service = filtered[index];
+                final isActive = service.status == "active";
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.softLilacContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.miscellaneous_services, color: AppTheme.electricIndigo, size: 24),
                         ),
-                        child: const Icon(Icons.miscellaneous_services, color: AppTheme.electricIndigo, size: 24),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  service.name,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: isActive ? const Color(0xFFD1FAE5) : Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(12),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    service.name,
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
                                   ),
-                                  child: Text(
-                                    isActive ? "Active" : "Inactive",
-                                    style: TextStyle(
-                                      color: isActive ? const Color(0xFF10B981) : Colors.grey.shade600,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isActive ? const Color(0xFFD1FAE5) : Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      isActive ? "Active" : "Inactive",
+                                      style: TextStyle(
+                                        color: isActive ? const Color(0xFF10B981) : Colors.grey.shade600,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(service.description, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Text("Fee: KES ${service.fee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
-                                const SizedBox(width: 16),
-                                Text("Processing: ${service.processingDays} day(s)", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      isActive
-                          ? OutlinedButton.icon(
-                              onPressed: () => _deactivate(service),
-                              icon: const Icon(Icons.block, size: 16, color: Colors.red),
-                              label: const Text("Deactivate", style: TextStyle(color: Colors.red)),
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFFFCA5A5)),
+                                ],
                               ),
-                            )
-                          : ElevatedButton.icon(
-                              onPressed: () => _reactivate(service),
-                              icon: const Icon(Icons.check_circle_outline, size: 16),
-                              label: const Text("Reactivate"),
-                            ),
-                    ],
+                              const SizedBox(height: 4),
+                              Text(service.description, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Text("Fee: KES ${service.fee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
+                                  const SizedBox(width: 16),
+                                  Text("Processing: ${service.processingDays} day(s)", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        isActive
+                            ? OutlinedButton.icon(
+                                onPressed: () => _deactivate(service),
+                                icon: const Icon(Icons.block, size: 16, color: Colors.red),
+                                label: const Text("Deactivate", style: TextStyle(color: Colors.red)),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Color(0xFFFCA5A5)),
+                                ),
+                              )
+                            : ElevatedButton.icon(
+                                onPressed: () => _reactivate(service),
+                                icon: const Icon(Icons.check_circle_outline, size: 16),
+                                label: const Text("Reactivate"),
+                              ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
         ],
       ),
     );
   }
 }
-
