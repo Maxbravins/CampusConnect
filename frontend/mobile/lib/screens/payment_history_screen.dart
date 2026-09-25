@@ -73,6 +73,111 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     return "${date.day}/${date.month}/${date.year}";
   }
 
+  String _formatDateTime(DateTime? date) {
+    if (date == null) return "";
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return "${date.day}/${date.month}/${date.year} at $hour:$minute";
+  }
+
+  void _showReceipt(PaymentHistoryItem payment) {
+    final statusColor = _statusColor(payment.status);
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.softLilacContainer,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.receipt_long, color: AppTheme.electricIndigo),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      "Payment Receipt",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _receiptRow("Service", payment.serviceName),
+              _receiptRow("Reference No.", payment.requestNumber),
+              _receiptRow("Transaction ID", payment.transactionReference ?? "N/A"),
+              _receiptRow("Phone Number", payment.phoneNumber),
+              _receiptRow("Date", _formatDateTime(payment.createdAt)),
+              const Divider(height: 28),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Amount Paid",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                  ),
+                  Text(
+                    "KES ${payment.amount}",
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.electricIndigo),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    payment.status,
+                    style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("Close"),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _receiptRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,60 +226,64 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.softLilacContainer,
-                    borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: () => _showReceipt(payment),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.softLilacContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.payments_outlined, color: AppTheme.electricIndigo, size: 24),
                   ),
-                  child: const Icon(Icons.payments_outlined, color: AppTheme.electricIndigo, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          payment.serviceName,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                        ),
+                        const SizedBox(height: 4),
+                        Text("Ref: ${payment.requestNumber}", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                        const SizedBox(height: 4),
+                        Text("${payment.phoneNumber} · ${_formatDate(payment.createdAt)}", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                        if (payment.transactionReference != null) ...[
+                          const SizedBox(height: 2),
+                          Text("Txn: ${payment.transactionReference}", style: const TextStyle(color: AppTheme.electricIndigo, fontSize: 12, fontWeight: FontWeight.w500)),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        payment.serviceName,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                        "KES ${payment.amount}",
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark, fontSize: 15),
                       ),
-                      const SizedBox(height: 4),
-                      Text("Ref: ${payment.requestNumber}", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      Text("${payment.phoneNumber} · ${_formatDate(payment.createdAt)}", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      if (payment.transactionReference != null) ...[
-                        const SizedBox(height: 2),
-                        Text("Txn: ${payment.transactionReference}", style: const TextStyle(color: AppTheme.electricIndigo, fontSize: 12, fontWeight: FontWeight.w500)),
-                      ],
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          payment.status,
+                          style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "KES ${payment.amount}",
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark, fontSize: 15),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        payment.status,
-                        style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -182,4 +291,3 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 }
-

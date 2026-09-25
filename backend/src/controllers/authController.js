@@ -1,7 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const User = require("../models/User");
-const { sendRegistrationEmail } = require("../services/emailService");
+const { sendRegistrationEmail, sendPasswordResetOtp } = require("../services/emailService");
 
 function generateToken(user) {
   return jwt.sign(
@@ -68,4 +69,122 @@ async function login(req, res, next) {
   }
 }
 
-module.exports = { register, login };
+// POST /api/auth/forgot-password
+async function forgotPassword(req, res, next) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+
+    // Do not reveal whether an email exists.
+    if (!user) {
+      return res.json({
+        message: "If the email exists, a password reset OTP has been sent.",
+      });
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString();
+
+    user.resetPasswordOtp = otp;
+    user.resetPasswordOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    await user.save();
+
+    sendPasswordResetOtp(user.email, otp);
+
+    res.json({
+      message: "If the email exists, a password reset OTP has been sent.",
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/auth/verify-reset-otp
+async function verifyResetOtp(req, res, next) {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        message: "Email and OTP are required",
+      });
+    }
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    });
+
+    if (
+      !user ||
+      user.resetPasswordOtp !== otp ||
+      !user.resetPasswordOtpExpires ||
+      user.resetPasswordOtpExpires < new Date()
+    ) {
+      return res.status(400).json({
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    res.json({
+      message: "OTP verified successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/auth/reset-password
+async function resetPassword(req, res, next) {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        message: "Email, OTP, and new password are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    });
+
+    if (
+      !user ||
+      user.resetPasswordOtp !== otp ||
+      !user.resetPasswordOtpExpires ||
+      user.resetPasswordOtpExpires < new Date()
+    ) {
+      return res.status(400).json({
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordOtpExpires = undefined;
+
+    await user.save();
+
+    res.json({
+      message: "Password reset successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { register, login, forgotPassword, verifyResetOtp, resetPassword, };

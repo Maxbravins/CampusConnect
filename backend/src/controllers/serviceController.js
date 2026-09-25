@@ -1,9 +1,12 @@
 const Service = require("../models/Service");
 
-// GET /api/services
+// GET /api/services (optional ?category=... filter)
 async function listServices(req, res, next) {
   try {
     const filter = req.user?.role === "admin" ? {} : { status: "active" };
+    if (req.query.category && req.query.category !== "All") {
+      filter.category = req.query.category;
+    }
     const services = await Service.find(filter).sort({ createdAt: -1 });
     res.json(services);
   } catch (err) {
@@ -14,8 +17,14 @@ async function listServices(req, res, next) {
 // POST /api/services (admin)
 async function createService(req, res, next) {
   try {
-    const { name, description, fee, processingDays } = req.body;
-    const service = await Service.create({ name, description, fee, processingDays });
+    const { name, description, fee, processingDays, category } = req.body;
+    const service = await Service.create({
+      name,
+      description,
+      fee,
+      processingDays,
+      category: category || "General",
+    });
     res.status(201).json(service);
   } catch (err) {
     next(err);

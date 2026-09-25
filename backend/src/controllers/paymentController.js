@@ -53,8 +53,22 @@ async function mpesaCallback(req, res, next) {
     if (success) {
       await Request.findByIdAndUpdate(payment.request, { status: "Paid" });
       const student = await User.findById(payment.student);
-      if (student) {
-        sendPaymentEmail(student.email, payment.amount);
+
+      const populatedPayment = await Payment.findById(payment._id).populate({
+        path: "request",
+        populate: { path: "service", select: "name" },
+      });
+
+      if (student && populatedPayment.request) {
+        sendPaymentEmail(student.email, {
+          serviceName: populatedPayment.request.service.name,
+          requestNumber: populatedPayment.request.requestNumber,
+          amount: payment.amount,
+          transactionReference: payment.transactionReference,
+          phoneNumber: payment.phoneNumber,
+          date: new Date().toLocaleString("en-KE", { timeZone: "Africa/Nairobi" }),
+        });
+
         await Notification.create({
           user: student._id,
           title: "Payment Received",

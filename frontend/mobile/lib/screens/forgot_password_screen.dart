@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import 'register_screen.dart';
-import 'main_screen.dart';
-import 'forgot_password_screen.dart';
+import '../services/api_service.dart';
+import 'reset_password_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -24,11 +20,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  Future<void> _sendOtp() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -37,21 +32,40 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final user = await AuthService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+      await ApiService.post(
+        "/auth/forgot-password",
+        {
+          "email": _emailController.text.trim(),
+        },
+        withAuth: false,
       );
 
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => MainScreen(user: user)),
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ResetPasswordScreen(
+            email: _emailController.text.trim(),
+          ),
+        ),
       );
     } on ApiException catch (e) {
-      setState(() => _errorMessage = e.message);
-    } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage =
+            "Could not reach the server. Check your connection and try again.";
+      });
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -59,6 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.softLilacBg,
+      appBar: AppBar(
+        title: const Text("Forgot Password"),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -68,14 +85,16 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: const BorderSide(color: AppTheme.softLilacBorder, width: 1.5),
+                  side: const BorderSide(
+                    color: AppTheme.softLilacBorder,
+                    width: 1.5,
+                  ),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(28),
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Center(
@@ -85,12 +104,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: AppTheme.softLilacContainer,
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: const Icon(Icons.school, size: 40, color: AppTheme.electricIndigo),
+                            child: const Icon(
+                              Icons.lock_reset,
+                              size: 42,
+                              color: AppTheme.electricIndigo,
+                            ),
                           ),
                         ),
+
                         const SizedBox(height: 20),
+
                         const Text(
-                          "Welcome Back",
+                          "Reset Your Password",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 24,
@@ -98,12 +123,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppTheme.electricIndigoDark,
                           ),
                         ),
-                        const SizedBox(height: 6),
+
+                        const SizedBox(height: 8),
+
                         const Text(
-                          "Sign in to your CampusConnect account",
+                          "Enter your registered email address and we'll send you a password reset OTP.",
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                            height: 1.4,
+                          ),
                         ),
+
                         const SizedBox(height: 28),
 
                         TextFormField(
@@ -111,41 +143,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
                             labelText: "Email Address",
-                            prefixIcon: Icon(Icons.email_outlined, color: AppTheme.electricIndigo),
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: AppTheme.electricIndigo,
+                            ),
                           ),
                           validator: (value) {
-                            if (value == null || value.trim().isEmpty) return "Enter your email";
-                            if (!value.contains("@")) return "Enter a valid email";
+                            if (value == null || value.trim().isEmpty) {
+                              return "Enter your email";
+                            }
+
+                            if (!value.contains("@")) {
+                              return "Enter a valid email";
+                            }
+
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
-
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: "Password",
-                            prefixIcon: Icon(Icons.lock_outline, color: AppTheme.electricIndigo),
-                          ),
-                          validator: (value) =>
-                              (value == null || value.isEmpty) ? "Enter your password" : null,
-                        ),
-
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const ForgotPasswordScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text("Forgot Password?"),
-                      ),
-                    ),
 
                         if (_errorMessage != null) ...[
                           const SizedBox(height: 16),
@@ -157,8 +171,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: Text(
                               _errorMessage!,
-                              style: const TextStyle(color: Colors.red, fontSize: 13),
                               textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                         ],
@@ -168,26 +185,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _submit,
+                            onPressed: _isLoading ? null : _sendOtp,
                             child: _isLoading
                                 ? const SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   )
-                                : const Text("Log In", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                : const Text(
+                                    "Send OTP",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ),
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                            );
+                            Navigator.of(context).pop();
                           },
-                          child: const Text("Don't have an account? Register"),
+                          child: const Text("Back to Log In"),
                         ),
                       ],
                     ),
@@ -201,4 +225,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

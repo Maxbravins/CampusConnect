@@ -16,9 +16,19 @@ class ServicesScreen extends StatefulWidget {
 }
 
 class _ServicesScreenState extends State<ServicesScreen> {
+  static const _categories = [
+    "All",
+    "Academic",
+    "Administrative",
+    "Financial",
+    "Accommodation",
+    "General",
+  ];
+
   List<CampusService> _services = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String _selectedCategory = "All";
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
@@ -53,7 +63,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     });
 
     try {
-      final services = await ServiceService.listServices();
+      final services = await ServiceService.listServices(category: _selectedCategory);
       setState(() => _services = services);
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
@@ -215,6 +225,36 @@ class _ServicesScreenState extends State<ServicesScreen> {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _categories.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final category = _categories[index];
+                  final selected = category == _selectedCategory;
+                  return ChoiceChip(
+                    label: Text(category),
+                    selected: selected,
+                    selectedColor: AppTheme.electricIndigo,
+                    labelStyle: TextStyle(
+                      color: selected ? Colors.white : AppTheme.electricIndigoDark,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    backgroundColor: AppTheme.softLilacContainer,
+                    onSelected: (_) {
+                      setState(() => _selectedCategory = category);
+                      _loadServices();
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
           Expanded(child: _buildBody()),
         ],
       ),
@@ -276,9 +316,26 @@ class _ServicesScreenState extends State<ServicesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          service.name,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                service.name,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.softLilacBadge,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                service.category,
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.softLilacText),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(

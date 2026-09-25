@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, enum: ["student", "admin"], default: "student" },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
+    resetPasswordOtp: { type: String },
+    resetPasswordOtpExpires: { type: Date },
   },
   { timestamps: true }
 );
