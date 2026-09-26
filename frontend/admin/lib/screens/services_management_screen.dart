@@ -22,12 +22,22 @@ class ServicesManagementScreen extends StatefulWidget {
 }
 
 class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
+  static const _categories = [
+    "Academic",
+    "Administrative",
+    "Financial",
+    "Accommodation",
+    "General",
+  ];
+  static const _filterCategories = ["All", ..._categories];
+
   List<CampusService> _services = [];
   bool _isLoading = true;
   String? _errorMessage;
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+  String _selectedCategory = "All";
 
   @override
   void initState() {
@@ -59,7 +69,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
     });
 
     try {
-      final services = await ServiceManagementService.listServices();
+      final services = await ServiceManagementService.listServices(category: _selectedCategory);
       setState(() => _services = services);
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
@@ -109,6 +119,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
     final daysController = TextEditingController(text: "1");
     final formKey = GlobalKey<FormState>();
     String? dialogError;
+    String selectedCategory = _categories.first;
 
     await showDialog(
       context: context,
@@ -128,6 +139,17 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                         controller: nameController,
                         decoration: const InputDecoration(labelText: "Service Name"),
                         validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedCategory,
+                        decoration: const InputDecoration(labelText: "Category"),
+                        items: _categories
+                            .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) setDialogState(() => selectedCategory = value);
+                        },
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -178,6 +200,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                         description: descriptionController.text.trim(),
                         fee: num.parse(feeController.text.trim()),
                         processingDays: int.parse(daysController.text.trim()),
+                        category: selectedCategory,
                       );
                       if (!dialogContext.mounted) return;
                       Navigator.of(dialogContext).pop();
@@ -310,6 +333,34 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
               contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
             ),
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 36,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _filterCategories.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final category = _filterCategories[index];
+                final selected = category == _selectedCategory;
+                return ChoiceChip(
+                  label: Text(category),
+                  selected: selected,
+                  selectedColor: AppTheme.electricIndigo,
+                  labelStyle: TextStyle(
+                    color: selected ? Colors.white : AppTheme.electricIndigoDark,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  backgroundColor: AppTheme.softLilacContainer,
+                  onSelected: (_) {
+                    setState(() => _selectedCategory = category);
+                    _loadServices();
+                  },
+                );
+              },
+            ),
+          ),
           const SizedBox(height: 16),
           if (filtered.isEmpty)
             const Padding(
@@ -363,6 +414,18 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.softLilacBadge,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      service.category,
+                                      style: const TextStyle(color: AppTheme.softLilacText, fontSize: 11, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ],
