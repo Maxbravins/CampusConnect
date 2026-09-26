@@ -1,156 +1,437 @@
-# CampusConnect — Demo Script
+## CampusConnect — Demo Script
 
 A suggested walkthrough for presenting the project, roughly 10–15 minutes.
-Each step says what to do, what to say, and which part of your proposal
-it demonstrates.
 
-## Before you start
+Each step explains what to do, what to say, and what part of the project it demonstrates.
 
-- [ ] Backend running (`npm run dev` in `backend/`) — confirm with
-      `http://localhost:5000/api/health`
-- [ ] Mobile app running in Chrome (`flutter run -d chrome` in `frontend/mobile`)
-- [ ] Admin app running in a **separate** Chrome window (`flutter run -d chrome`
-      in `frontend/admin`) — side by side with the mobile window if possible,
-      so status changes are visible on both screens at once
-- [ ] You have one admin account and remember its password
-- [ ] Decide whether you're demoing M-Pesa live (needs ngrok running and
-      fresh Daraja credentials) or skipping it and just describing the flow
-- [ ] Optional: have a couple of test student accounts already registered
-      so the admin's student list and reports don't look empty
+Before you start
 
----
+Backend running in backend/
 
-## 1. Introduce the problem (30 seconds)
+Confirm API is working with:
+http://localhost:5000/api/health
 
-**Say:** "Students at most institutions still queue at physical offices for
-things like ID replacement or transcripts — separate steps for requesting,
-paying, and tracking status. CampusConnect brings all of that into one
-mobile app, with a companion admin panel for staff."
+Student app running in Chrome
 
-## 2. Show the architecture (30 seconds)
+Admin app running in a separate Chrome window
 
-**Say:** "It's three parts: a Flutter mobile app for students, a Flutter
-Web admin panel — so both share the same language — and a Node.js/Express
-backend with MongoDB, talking to Safaricom's M-Pesa API and an email
-service."
+Have one admin account ready
 
-*(Optionally show the folder structure or the proposal's architecture diagram here.)*
+Have at least one registered student account ready
 
-## 3. Student: register and log in
+Have several campus services available
 
-**Do:** In the mobile app, register a new account (or log in with an
-existing one).
+Have at least one announcement available
 
-**Say:** "Registration is secured with hashed passwords and issues a JWT
-token. It also triggers a welcome email automatically." *(Optionally
-switch to your email inbox to show it arriving.)*
+For live M-Pesa demonstration, use the designated Daraja sandbox test number only
 
-**Demonstrates:** secure registration/login, email notifications.
+Make sure your internet connection is working for email/API demonstrations
 
-## 4. Admin: add a service (if not already present)
+## Introduce the problem — 30 seconds
 
-**Do:** Switch to the admin window → Manage Services → Add Service (e.g.
-"Transcript Request", a fee, and processing days).
+Say:
 
-**Say:** "Administrators control what services exist and what they cost —
-this is fully dynamic, nothing is hardcoded."
+"Students often have to visit different offices to request services such as transcripts, certificates, ID replacement, accommodation or clearance. This creates separate processes for requesting, paying and tracking services.
 
-**Demonstrates:** service management.
+CampusConnect brings these services together in one mobile application for students, with a companion web-based administration panel for staff."
 
-## 5. Student: browse and request a service
+Demonstrates:
 
-**Do:** Switch back to the mobile window, refresh Campus Services — the
-new service should appear. Tap it, confirm, and submit a request.
+The problem and motivation behind the project.
 
-**Say:** "The student sees exactly what the admin just created — this is
-a shared MongoDB database, not two separate systems. The request gets a
-unique reference number automatically."
+## Show the system architecture — 30 seconds
 
-**Demonstrates:** service browsing, request submission, reference number
-generation.
+Say:
 
-## 6. Student: track the request
+"CampusConnect has three main components. First, a Flutter mobile application for students. Second, a Flutter Web administration panel for staff. Third, a Node.js and Express backend connected to MongoDB.
 
-**Do:** Go to My Requests — show the new request with a "Payment Required"
-status chip.
+The backend also integrates with Safaricom's Daraja API for M-Pesa payments and an SMTP email service for email notifications."
 
-**Say:** "Students can track every request they've made and its current
-stage — Pending, Payment Required, Paid, Processing, Completed."
+Show:
 
-## 7. Payment — live or described
+Flutter Mobile
+      ↓
+Node.js + Express API
+      ↓
+MongoDB
+      ↓
+M-Pesa / Email
 
-**If demoing live:**
-**Do:** Tap "Pay Now", leave the sandbox test number as-is, submit, and
-watch the backend terminal for the STK push and callback.
-**Say:** "This goes through Safaricom's Daraja sandbox — a real STK push
-flow, safely testable without moving real money."
+Flutter Web Admin
+      ↓
+Node.js + Express API
 
-**If skipping live payment:**
-**Say:** "Payment is handled through Safaricom's Daraja API with STK
-Push — I've tested this end-to-end in the sandbox environment; I'm not
-triggering it live today to keep the demo focused."
+## Student registration and login — 1 minute
 
-**Demonstrates:** M-Pesa integration.
+Do:
 
-## 8. Admin: manage the request
+Open the Student application.
 
-**Do:** Switch to admin → Manage Requests. Show the same request. Tap its
-status chip and change it (e.g. to "Processing" or "Completed").
+Register a student or log in with an existing account.
 
-**Say:** "Admins can filter by status and move requests through their
-lifecycle. Any change here — "
+Say:
 
-**Do:** Switch to mobile → My Requests → refresh.
+"The student creates an account using their personal details. Passwords are securely hashed before being stored in the database, and authentication uses JSON Web Tokens.
 
-**Say:** " — is immediately visible to the student, and also generates
-an in-app notification and an email."
+Registration also triggers an email notification."
 
-**Demonstrates:** request management, real-time status sync, notifications.
+Demonstrates:
 
-## 9. Student: notifications and profile
+Registration
 
-**Do:** Show the Notifications screen (the update from step 8 should be
-there). Then show Profile — edit the phone number and save.
+Authentication
 
-**Demonstrates:** notifications, profile management.
+Password hashing
 
-## 10. Admin: student management
+JWT
 
-**Do:** Manage Students → search for a student by name → show the
-active/inactive toggle.
+Email integration
 
-**Say:** "Admins can search the student base and deactivate an account if
-needed — for example, if someone withdraws."
+## Student password recovery — 1 minute
 
-**Demonstrates:** role-based access control, student management.
+Do:
 
-## 11. Admin: reports
+From Student Login:
 
-**Do:** Reports & Stats — walk through the numbers (total students,
-requests by status, successful payments, recent activity lists).
+Forgot Password?
 
-**Say:** "This gives administrators visibility into overall system usage
-without digging through the database directly."
+Enter the registered email address.
 
-**Demonstrates:** reporting.
+Show the OTP reset screen.
 
-## 12. Wrap-up (30 seconds)
+Say:
 
-**Say:** "That covers the core proposal: secure auth, service requests,
-M-Pesa payments, email and in-app notifications, and admin tools for
-services, requests, students, and reporting — all built on Flutter, Node,
-Express, and MongoDB."
+"The system also provides password recovery. The user enters their registered email address, receives a time-limited OTP through email, verifies the OTP and creates a new password."
 
----
+Demonstrates:
 
-## Anticipated questions
+Password recovery
 
-- **"Why Flutter Web for admin instead of React?"** — Keeps the whole
-  project in one language (Dart), reducing the tech stack's complexity
-  for a project this size.
-- **"Is this production-ready?"** — It's fully functional against
-  Safaricom's sandbox; going live would need production Daraja
-  credentials, a verified email-sending domain, and deployment to a real
-  server instead of localhost/ngrok.
-- **"What would you build next?"** — Payment history screen (the backend
-  endpoint already exists), push notifications, and iOS support.
+OTP verification
+
+Email integration
+
+Password update
+
+You don't necessarily need to complete the entire reset during the main demo. Showing the flow is enough unless the examiner asks.
+
+## Admin service management — 1 minute
+
+Do:
+
+Switch to the Admin panel.
+
+Go to:
+
+Services
+
+Create or show a service such as:
+
+Transcript Request
+Fee: KES 500
+Processing: 3 days
+Category: Academic
+
+Say:
+
+"Administrators control the services available to students. Services include their name, description, fee, processing time and category.
+
+This means the service catalogue is dynamic rather than being hardcoded into the mobile application."
+
+## Demonstrates:
+
+Admin functionality
+
+CRUD/service management
+
+Dynamic data
+
+Service categories
+
+## Student browses services and submits a request — 1 minute
+
+Do:
+
+Switch back to Student.
+
+Open:
+
+Services
+
+Show the categories and service list.
+
+Select a service and submit a request.
+
+Say:
+
+"The student receives the services directly from the backend. After selecting a service, the student submits a request and the system automatically generates a unique request reference number."
+
+Demonstrates:
+
+Service catalogue
+
+Category filtering
+
+Request submission
+
+Unique request reference
+
+## Track the request — 45 seconds
+
+Do:
+
+Open:
+
+My Requests
+
+Show the newly created request.
+
+Say:
+
+"Students can track their requests and see the current processing stage. The system uses statuses such as Payment Required, Paid, Processing and Completed."
+
+Demonstrates:
+
+Request tracking
+
+Status management
+
+## M-Pesa payment — 1 minute
+
+Option A — live demonstration
+
+Do:
+
+Tap Pay Now.
+
+Use the designated Safaricom Daraja sandbox test number, not a personal number.
+
+Say:
+
+"The payment process uses Safaricom's Daraja API and STK Push. The student initiates the payment, receives the payment prompt and enters the required PIN in the sandbox environment."
+
+Then show the backend terminal if appropriate.
+
+## Option B — skip live payment
+
+Say:
+
+"The system integrates with Safaricom's Daraja API using STK Push. I have tested the payment integration in the sandbox environment, but I am not triggering a live payment during this presentation."
+
+Demonstrates:
+
+M-Pesa integration
+
+STK Push
+
+Payment processing
+
+Backend callback handling
+
+## Payment history — 30 seconds
+
+Do:
+
+Open:
+
+Payments
+
+Show the payment history list.
+
+Tap a payment to show the receipt details.
+
+Say:
+
+"Students can also view their previous payment transactions, including the service, amount, request reference, phone number, transaction reference and payment status."
+
+Demonstrates:
+
+Payment history
+
+Transaction records
+
+Payment receipts
+
+## Admin manages the request — 1 minute
+
+Do:
+
+Switch to Admin.
+
+Open:
+
+Requests
+
+Find the student's request.
+
+Change the status.
+
+For example:
+
+Payment Required
+        ↓
+Processing
+        ↓
+Completed
+
+Then switch back to Student.
+
+Say:
+
+"Administrators can view and manage student requests and update their status as the service is processed."
+
+Then:
+
+"These updates are stored centrally in MongoDB and are reflected in the student's request view. The system also generates an in-app notification and email when request statuses change."
+
+## Demonstrates:
+
+Admin request management
+
+Shared database
+
+Status updates
+
+Notifications
+
+Email
+
+## Student notifications and profile — 45 seconds
+
+Do:
+
+Open:
+
+Notifications
+
+Show the notification generated from the request update.
+
+Then open:
+
+Profile
+
+Show the profile information and editing functionality.
+
+Say:
+
+"Students receive in-app notifications when important events occur, such as payment confirmation and request status changes. They can also update their profile information."
+
+Demonstrates:
+
+Notifications
+
+Profile management
+
+12. Announcements — 45 seconds
+
+Do:
+
+## Switch to Admin.
+
+Open:
+
+Announcements
+
+Publish an announcement.
+
+Then switch to Student and open:
+
+## Announcements
+
+Say:
+
+"Administrators can publish announcements through the admin panel. Students can then view these announcements from the mobile application."
+
+## Demonstrates:
+
+Admin communication
+
+Announcement management
+
+Student information access
+
+## Student management and reports — 1 minute
+
+Do:
+
+In Admin, open:
+
+Students
+
+Search for a student and demonstrate the active/inactive account control.
+
+Then open:
+
+## Reports & Analytics
+
+Say:
+
+"Administrators can search and manage student accounts. The reporting dashboard provides an overview of students, requests, successful payments and recent system activity."
+
+## Demonstrates:
+
+Student management
+
+Account control
+
+Reporting
+
+Analytics
+
+## Admin role security — 30 seconds
+
+Do:
+
+You can simply explain this rather than demonstrate it.
+
+Say:
+
+"The system uses role-based access control. Student and administrator accounts have different permissions. Administrative endpoints require an authenticated administrator, while students can only access student-level functionality."
+
+## Demonstrates:
+
+RBAC
+
+Protected API routes
+
+Authorization
+
+## Wrap-up — 30 seconds
+
+Say:
+
+"CampusConnect provides a centralized platform for campus services, allowing students to register, browse services, submit requests, make payments through M-Pesa, track request progress, view payment history, receive notifications, recover their passwords and access announcements.
+
+Administrators can manage services, students, requests and announcements, while also viewing system reports.
+
+The system is built using Flutter, Flutter Web, Node.js, Express.js, MongoDB, Safaricom Daraja and SMTP email services."
+
+## ** Anticipated Questions **
+
+## "Why did you use Flutter Web for the admin panel instead of React?"
+
+"Using Flutter for both the mobile application and admin panel allows the project to use Dart across the frontend components while keeping the backend independent."
+
+## "Why MongoDB?"
+
+"MongoDB provides a document-oriented database that works well with the Node.js backend and allows the system to store users, services, requests, payments, notifications and announcements."
+
+## "How does M-Pesa work in your system?"
+
+"The student initiates payment, the backend communicates with Safaricom's Daraja API to initiate an STK Push, and Safaricom sends the payment result back through the callback endpoint. The backend then updates the payment and request records."
+
+## "How does password recovery work?"
+
+"The user enters their registered email, the backend generates a six-digit OTP and sends it through email. The OTP expires after a limited period. After successful verification, the user can create a new password."
+
+## "How are passwords secured?"
+
+"Passwords are hashed using bcrypt before they are stored. Authentication uses JWT tokens, and protected endpoints verify the authenticated user's role."
+
+## "Is the system production-ready?"
+
+"The core system is functional, but the current M-Pesa integration is configured for the Daraja sandbox and the development environment uses localhost. Production deployment would require production Daraja credentials, deployed backend infrastructure, production email configuration and additional operational security."
+
+## What would you improve next?
+
+"The next improvements would include push notifications, iOS support, production deployment and further security and monitoring enhancements."
