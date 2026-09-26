@@ -3,7 +3,7 @@ const Request = require("../models/Request");
 const Payment = require("../models/Payment");
 
 function csvEscape(value) {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+  return `"${String(value == null ? "" : value).replace(/"/g, '""')}"`;
 }
 
 // GET /api/reports/dashboard (admin only)
