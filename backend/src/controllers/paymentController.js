@@ -12,6 +12,11 @@ async function initiatePayment(req, res, next) {
 
     const request = await Request.findById(requestId).populate("service", "name fee");
     if (!request) return res.status(404).json({ message: "Request not found" });
+      if (request.student.toString() !== req.user.id.toString()) {
+        return res.status(403).json({
+          message: "You can only pay for your own request",
+        });
+      }
 
     const payment = await Payment.create({
       request: request._id,

@@ -158,13 +158,12 @@ There's no self-service way to become an admin (by design). To create one:
   `Payment` record, sends a confirmation email, and creates an in-app
   notification.
 
-## Known Limitations / Not Yet Built
+## Known Limitations
 
-- Payment history screen (student-facing list of past payments) —
-  backend endpoint (`GET /api/payments/mine`) already exists
-- Announcements feature
-- Push notifications (current notifications are in-app/email only)
-- iOS and production deployment (currently Android + Web only)
+- Push notifications are not yet implemented; the current system uses
+  in-app and email notifications.
+- iOS support and production deployment are not yet included.
+- M-Pesa is currently configured for the Safaricom Daraja sandbox.
 
 ## Documentation
 
