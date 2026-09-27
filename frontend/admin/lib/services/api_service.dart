@@ -43,6 +43,21 @@ class ApiService {
     return _decode(response);
   }
 
+  /// Like [get], but returns the raw response body as plain text instead
+  /// of decoding it as JSON. Used for non-JSON responses like CSV exports.
+  static Future<String> getRaw(String path, {bool withAuth = true}) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}$path"),
+      headers: await _headers(withAuth: withAuth),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.body;
+    }
+
+    throw ApiException(response.statusCode, "Could not download file (${response.statusCode})");
+  }
+
   static Future<dynamic> post(
     String path,
     Map<String, dynamic> body, {

@@ -6,4 +6,12 @@ class ReportService {
     final data = await ApiService.get("/reports/dashboard");
     return DashboardStats.fromJson(data);
   }
+
+  static Future<String> exportRequestsCsv() async {
+    return ApiService.getRaw("/reports/export/requests");
+  }
+
+  static Future<String> exportPaymentsCsv() async {
+    return ApiService.getRaw("/reports/export/payments");
+  }
 }

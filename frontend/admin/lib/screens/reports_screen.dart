@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../utils/dialogs.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
+import '../utils/csv_downloader.dart';
 
 class ReportsScreen extends StatefulWidget {
   final String adminName;
@@ -61,6 +62,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
       (route) => false,
     );
   }
+
+  Future<void> _exportRequests() async {
+  try {
+    final csv = await ReportService.exportRequestsCsv();
+    downloadCsv("campusconnect_requests.csv", csv);
+  } on ApiException catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+  }
+}
+
+Future<void> _exportPayments() async {
+  try {
+    final csv = await ReportService.exportPaymentsCsv();
+    downloadCsv("campusconnect_payments.csv", csv);
+  } on ApiException catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +246,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ),
           const SizedBox(height: 24),
+
+            // Export Buttons Section
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _exportRequests,
+                  icon: const Icon(Icons.download),
+                  label: const Text("Export Requests CSV"),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                  Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _exportPayments,
+                  icon: const Icon(Icons.download),
+                  label: const Text("Export Payments CSV"),
+                ),
+              ),
+            ],
+          ),
 
           // Recent Transactions Card Section
           Card(
