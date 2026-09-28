@@ -311,6 +311,8 @@ class AppTheme {
         return const Color(0xFF8B5CF6); // Soft Purple
       case "Completed":
         return const Color(0xFF10B981); // Emerald Green
+      case "Cancelled":
+        return const Color(0xFFDC2626); // Red
       default:
         return Colors.grey.shade600;
     }
@@ -328,9 +330,10 @@ class AppTheme {
         return const Color(0xFFF3E8FF);
       case "Completed":
         return const Color(0xFFD1FAE5);
+      case "Cancelled":
+        return const Color(0xFFFEE2E2);
       default:
         return Colors.grey.shade200;
     }
   }
 }
-

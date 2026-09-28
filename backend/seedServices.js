@@ -9,32 +9,51 @@ const services = [
   {
     name: "Student ID Replacement",
     description: "Replace a lost or damaged student ID card",
+    category: "Administrative",
     fee: 500,
     processingDays: 1,
   },
   {
     name: "Transcript Request",
     description: "Official academic transcript for the current or a past semester",
+    category: "Academic",
     fee: 800,
     processingDays: 5,
   },
   {
     name: "Certificate Request",
     description: "Official certificate of completion or a course-specific certificate",
+    category: "Academic",
     fee: 1000,
     processingDays: 7,
   },
   {
     name: "Clearance Request",
     description: "Institutional clearance certificate (e.g. for graduation or transfer)",
+    category: "Administrative",
     fee: 600,
     processingDays: 3,
   },
   {
     name: "Accommodation Request",
     description: "Request or renew campus accommodation for the upcoming term",
+    category: "Accommodation",
     fee: 1500,
     processingDays: 4,
+  },
+  {
+    name: "Fee Balance Statement",
+    description: "Official statement of fees paid and outstanding balance",
+    category: "Financial",
+    fee: 200,
+    processingDays: 2,
+  },
+  {
+    name: "Library Fine Clearance",
+    description: "Clear outstanding library fines before graduation or re-registration",
+    category: "Financial",
+    fee: 300,
+    processingDays: 1,
   },
 ];
 
@@ -43,15 +62,19 @@ async function run() {
   console.log("Connected to MongoDB.");
 
   for (const service of services) {
+    const { category, ...rest } = service;
     const result = await Service.updateOne(
       { name: service.name },
-      { $setOnInsert: service },
+      {
+        $set: { category },
+        $setOnInsert: rest,
+      },
       { upsert: true }
     );
     if (result.upsertedCount > 0) {
-      console.log(`Created: ${service.name}`);
+      console.log(`Created: ${service.name} (${category})`);
     } else {
-      console.log(`Already exists, skipped: ${service.name}`);
+      console.log(`Already exists, category set to "${category}": ${service.name}`);
     }
   }
 

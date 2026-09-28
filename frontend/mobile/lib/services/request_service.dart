@@ -11,4 +11,10 @@ class RequestService {
     final data = await ApiService.get("/requests/mine");
     return (data as List).map((json) => ServiceRequest.fromJson(json)).toList();
   }
+
+  /// Cancels an unpaid request. Throws [ApiException] if it's already
+  /// been paid/processed, or doesn't belong to the current user.
+  static Future<void> cancelRequest(String requestId) async {
+    await ApiService.patch("/requests/$requestId/cancel", {});
+  }
 }

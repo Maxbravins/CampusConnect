@@ -90,4 +90,29 @@ async function updateStatus(req, res, next) {
   }
 }
 
-module.exports = { createRequest, myRequests, listRequests, updateStatus };
+// PATCH /api/requests/:id/cancel — student cancels their own unpaid request
+async function cancelRequest(req, res, next) {
+  try {
+    const request = await Request.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+
+    if (request.student.toString() !== req.user.id) {
+      return res.status(403).json({ message: "You can only cancel your own requests" });
+    }
+
+    if (request.status !== "Payment Required" && request.status !== "Pending") {
+      return res.status(400).json({
+        message: "Only unpaid requests can be cancelled. This request has already been paid or processed.",
+      });
+    }
+
+    request.status = "Cancelled";
+    await request.save();
+
+    res.json(request);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { createRequest, myRequests, listRequests, updateStatus, cancelRequest };

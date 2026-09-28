@@ -174,6 +174,33 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     );
   }
 
+  Future<void> _cancelRequest(ServiceRequest request) async {
+    final confirmed = await confirmAction(
+      context,
+      title: "Cancel Request",
+      message: "Cancel your ${request.serviceName} request (${request.requestNumber})? This can't be undone.",
+      confirmLabel: "Cancel Request",
+    );
+    if (!confirmed) return;
+
+    try {
+      await RequestService.cancelRequest(request.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Request cancelled.")),
+      );
+      _loadRequests();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not reach the server.")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -258,13 +285,28 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   ),
                 ),
                 request.status == "Payment Required"
-                    ? ElevatedButton.icon(
-                        onPressed: () => _payNow(request),
-                        icon: const Icon(Icons.payment, size: 16),
-                        label: const Text("Pay Now"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEA580C),
-                        ),
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () => _payNow(request),
+                            icon: const Icon(Icons.payment, size: 16),
+                            label: const Text("Pay Now"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEA580C),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => _cancelRequest(request),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text("Cancel", style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
                       )
                     : Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -286,4 +328,3 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     );
   }
 }
-

@@ -7,7 +7,7 @@ const requestSchema = new mongoose.Schema(
     service: { type: mongoose.Schema.Types.ObjectId, ref: "Service", required: true },
     status: {
       type: String,
-      enum: ["Pending", "Payment Required", "Paid", "Processing", "Completed"],
+      enum: ["Pending", "Payment Required", "Paid", "Processing", "Completed", "Cancelled"],
       default: "Pending",
     },
     submittedAt: { type: Date, default: Date.now },

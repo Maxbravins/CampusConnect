@@ -72,6 +72,19 @@ class ApiService {
     return _decode(response);
   }
 
+  static Future<dynamic> patch(
+    String path,
+    Map<String, dynamic> body, {
+    bool withAuth = true,
+  }) async {
+    final response = await http.patch(
+      Uri.parse("${ApiConfig.baseUrl}$path"),
+      headers: await _headers(withAuth: withAuth),
+      body: jsonEncode(body),
+    );
+    return _decode(response);
+  }
+
   static Future<dynamic> delete(String path, {bool withAuth = true}) async {
     final response = await http.delete(
       Uri.parse("${ApiConfig.baseUrl}$path"),

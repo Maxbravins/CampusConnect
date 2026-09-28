@@ -3,7 +3,9 @@ import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/theme_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeService.init();
   runApp(const CampusConnectApp());
 }
 
