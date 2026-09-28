@@ -1,13 +1,18 @@
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 
 /// Triggers a browser download of [content] as a file named [filename].
 void downloadCsv(String filename, String content) {
-  final bytes = html.Blob([content], 'text/csv');
-  final url = html.Url.createObjectUrlFromBlob(bytes);
+  final blob = web.Blob(
+    [content.toJS].toJS,
+    web.BlobPropertyBag(type: 'text/csv'),
+  );
+  final url = web.URL.createObjectURL(blob);
 
-  final anchor = html.AnchorElement(href: url)
-    ..setAttribute('download', filename)
-    ..click();
+  final anchor = web.HTMLAnchorElement()
+    ..href = url
+    ..download = filename;
+  anchor.click();
 
-  html.Url.revokeObjectUrl(url);
+  web.URL.revokeObjectURL(url);
 }

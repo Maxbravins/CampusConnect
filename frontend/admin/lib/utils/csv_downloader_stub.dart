@@ -1,4 +1,4 @@
-/// Fallback for platforms that do not support browser downloads.
+/// Fallback used on platforms without a browser (e.g. running tests).
 void downloadCsv(String filename, String content) {
-  // CSV downloads are only supported in the Flutter Web admin app.
+  throw UnsupportedError('CSV download is only supported on web.');
 }
