@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../utils/dialogs.dart';
 import '../theme/app_theme.dart';
 import 'welcome_screen.dart';
+import '../services/theme_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -166,6 +167,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Appearance Card
+            Card(
+              child: ValueListenableBuilder<ThemeMode>(
+                valueListenable: ThemeService.themeMode,
+                builder: (context, themeMode, _) {
+                  final isDark = themeMode == ThemeMode.dark;
+
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    leading: Icon(
+                      isDark
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
+                      color: AppTheme.electricIndigo,
+                    ),
+                    title: const Text(
+                      "Dark Mode",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      isDark
+                          ? "Dark appearance is enabled"
+                          : "Use a dark appearance",
+                    ),
+                    trailing: Switch(
+                      value: isDark,
+                      onChanged: (_) {
+                        ThemeService.toggleTheme();
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
             // Profile Details Form Card
             Card(
               child: Padding(

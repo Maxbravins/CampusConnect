@@ -130,6 +130,174 @@ class AppTheme {
     );
   }
 
+      // Dark theme with Electric Indigo & Soft Lilac accents
+    static ThemeData get dark {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: electricIndigo,
+      brightness: Brightness.dark,
+      primary: electricIndigoLight,
+      secondary: electricIndigoLight,
+      surface: const Color(0xFF11121F),
+      surfaceContainerLowest: const Color(0xFF0B0C14),
+      surfaceContainerLow: const Color(0xFF151625),
+      surfaceContainer: const Color(0xFF1B1C2C),
+      surfaceContainerHigh: const Color(0xFF24263A),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: const Color(0xFF11121F),
+
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF252657),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+
+      cardTheme: CardThemeData(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color: const Color(0xFF1B1C2C),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: Colors.deepPurple.shade700,
+            width: 1,
+          ),
+        ),
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: electricIndigoLight,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 14,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: electricIndigoLight,
+          side: BorderSide(
+            color: Colors.deepPurple.shade400,
+            width: 1.5,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 14,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.deepPurple.shade700,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.deepPurple.shade700,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: electricIndigoLight,
+            width: 2,
+          ),
+        ),
+        filled: true,
+        fillColor: const Color(0xFF1B1C2C),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: const Color(0xFF151625),
+        indicatorColor: const Color(0xFF30315A),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(
+              color: electricIndigoLight,
+            );
+          }
+
+          return IconThemeData(
+            color: Colors.grey.shade400,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(
+              color: electricIndigoLight,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            );
+          }
+
+          return TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 12,
+          );
+        }),
+      ),
+
+      chipTheme: ChipThemeData(
+        labelStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        backgroundColor: const Color(0xFF30315A),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 4,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide.none,
+        ),
+      ),
+
+      listTileTheme: ListTileThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        tileColor: Colors.transparent,
+        iconColor: electricIndigoLight,
+      ),
+    );
+  }
+
   /// Status badge colors aligned with Electric Indigo & Soft Lilac theme
   static Color getStatusColor(String status) {
     switch (status) {

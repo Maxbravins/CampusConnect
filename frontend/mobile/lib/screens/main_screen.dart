@@ -5,6 +5,7 @@ import 'services_screen.dart';
 import 'my_requests_screen.dart';
 import 'payment_history_screen.dart';
 import 'profile_screen.dart';
+import '../services/theme_service.dart';
 
 /// Hosts the 5 main sections behind a persistent bottom navigation bar.
 class MainScreen extends StatefulWidget {
@@ -37,7 +38,10 @@ class _MainScreenState extends State<MainScreen> {
         index: _selectedIndex,
         children: screens,
       ),
-      bottomNavigationBar: NavigationBar(
+     bottomNavigationBar: Row(
+  children: [
+    Expanded(
+      child: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           setState(() {
@@ -72,6 +76,38 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
+    ),
+
+    ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeService.themeMode,
+      builder: (context, themeMode, _) {
+        final isDark = themeMode == ThemeMode.dark;
+
+        return Container(
+          height: 80,
+          width: 64,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              left: BorderSide(
+                color: Theme.of(context).dividerColor,
+              ),
+            ),
+          ),
+          child: IconButton(
+            tooltip: isDark ? "Switch to light mode" : "Switch to dark mode",
+            onPressed: ThemeService.toggleTheme,
+            icon: Icon(
+              isDark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+            ),
+          ),
+        );
+      },
+    ),
+  ],
+)
     );
   }
 }
