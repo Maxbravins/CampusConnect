@@ -110,7 +110,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -121,11 +121,15 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Student Service Requests",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
-                      ),
+  "Student Service Requests",
+  style: TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: Theme.of(context).colorScheme.primary,
+  ),
+),
                       SizedBox(height: 4),
-                      Text("Filter and update request lifecycle statuses", style: TextStyle(color: Colors.grey, fontSize: 14)),
+                      Text("Filter and update request lifecycle statuses", style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
                     ],
                   ),
                   IconButton.filledTonal(
@@ -151,12 +155,12 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                       selectedColor: AppTheme.electricIndigo,
                       backgroundColor: AppTheme.softLilacBg,
                       labelStyle: TextStyle(
-                        color: selected ? Colors.white : AppTheme.electricIndigoDark,
+                        color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                         fontWeight: selected ? FontWeight.bold : FontWeight.w500,
                         fontSize: 13,
                       ),
                       side: BorderSide(
-                        color: selected ? AppTheme.electricIndigo : AppTheme.softLilacBorder,
+                        color: selected ? AppTheme.electricIndigo : Theme.of(context).colorScheme.outline,
                       ),
                       onSelected: (_) {
                         setState(() => _filter = option);
@@ -169,7 +173,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
             ],
           ),
         ),
-        const Divider(height: 1, color: AppTheme.softLilacBorder),
+        const Divider(height: 1, color: Theme.of(context).dividerColor),
         Expanded(child: _buildBody()),
       ],
     );

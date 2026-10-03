@@ -75,4 +75,17 @@ async function updateUserStatus(req, res, next) {
   }
 }
 
-module.exports = { getMe, updateMe, listUsers, getUser, updateUserStatus };
+// PUT /api/users/fcm-token — logged-in user registers/updates their device's push token
+async function updateFcmToken(req, res, next) {
+  try {
+    const { fcmToken } = req.body;
+    if (!fcmToken) return res.status(400).json({ message: "fcmToken is required" });
+
+    await User.findByIdAndUpdate(req.user.id, { fcmToken });
+    res.json({ message: "Token registered" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getMe, updateMe, listUsers, getUser, updateUserStatus, updateFcmToken };

@@ -5,6 +5,7 @@ const {
   listUsers,
   getUser,
   updateUserStatus,
+  updateFcmToken,
 } = require("../controllers/userController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
@@ -14,6 +15,7 @@ const router = express.Router();
 // "me" as an :id value and route it to the wrong handler.
 router.get("/me", protect, getMe);
 router.put("/me", protect, updateMe);
+router.put("/fcm-token", protect, updateFcmToken);
 
 router.get("/", protect, adminOnly, listUsers);
 router.get("/:id", protect, adminOnly, getUser);

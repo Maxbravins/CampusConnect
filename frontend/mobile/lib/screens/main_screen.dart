@@ -5,6 +5,7 @@ import 'services_screen.dart';
 import 'my_requests_screen.dart';
 import 'payment_history_screen.dart';
 import 'profile_screen.dart';
+import '../services/push_service.dart';
 
 /// Hosts the 5 main sections behind a persistent bottom navigation bar.
 class MainScreen extends StatefulWidget {
@@ -21,6 +22,15 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Registers this device's push token every time a logged-in user
+    // reaches the main app shell (covers both fresh logins and
+    // re-opening the app with an existing session).
+    PushService.init();
+  }
 
   @override
   Widget build(BuildContext context) {

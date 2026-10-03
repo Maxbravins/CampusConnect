@@ -8,6 +8,7 @@ import 'login_screen.dart';
 import '../services/auth_service.dart';
 import '../utils/dialogs.dart';
 import '../theme/app_theme.dart';
+import '../services/theme_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final String adminName;
@@ -96,6 +97,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
         actions: [
+                    ValueListenableBuilder<ThemeMode>(
+            valueListenable: ThemeService.themeMode,
+            builder: (context, themeMode, _) {
+              final isDark = themeMode == ThemeMode.dark;
+
+              return IconButton(
+                icon: Icon(
+                  isDark
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                  color: Colors.white,
+                ),
+                tooltip: isDark
+                    ? "Switch to light mode"
+                    : "Switch to dark mode",
+                onPressed: ThemeService.toggleTheme,
+              );
+            },
+          ),
+          const SizedBox(width: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -163,7 +184,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ],
             ),
-          const VerticalDivider(thickness: 1, width: 1, color: AppTheme.softLilacBorder),
+          VerticalDivider(
+              thickness: 1,
+              width: 1,
+              color: Theme.of(context).dividerColor,
+            ),
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,

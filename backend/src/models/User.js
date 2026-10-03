@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     resetPasswordOtp: { type: String },
     resetPasswordOtpExpires: { type: Date },
+    fcmToken: { type: String },
   },
   { timestamps: true }
 );

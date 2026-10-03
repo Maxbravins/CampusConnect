@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'screens/splash_screen.dart';
+import 'services/theme_service.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -11,11 +13,18 @@ class CampusConnectAdminApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "CampusConnect Admin",
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeService.themeMode,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          title: "CampusConnect Admin",
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeMode,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

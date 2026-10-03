@@ -3,6 +3,7 @@ const Service = require("../models/Service");
 const Notification = require("../models/Notification");
 const generateRequestNumber = require("../utils/generateRequestNumber");
 const { sendRequestUpdateEmail, sendCompletionEmail } = require("../services/emailService");
+const { sendPushToUser } = require("../services/pushService");
 const User = require("../models/User");
 
 // POST /api/requests — student submits a request
@@ -81,6 +82,12 @@ async function updateStatus(req, res, next) {
         user: student._id,
         title: "Request Update",
         message: `Your ${request.service.name} request (${request.requestNumber}) is now: ${status}.`,
+      });
+
+      sendPushToUser(student, {
+        title: "Request Update",
+        body: `Your ${request.service.name} request (${request.requestNumber}) is now: ${status}.`,
+        data: { type: "request_update", requestId: request._id.toString(), status },
       });
     }
 

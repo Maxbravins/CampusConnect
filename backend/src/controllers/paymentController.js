@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { initiateStkPush } = require("../services/mpesaService");
 const { sendPaymentEmail } = require("../services/emailService");
+const { sendPushToUser } = require("../services/pushService");
 
 // POST /api/payments/initiate — student pays for a request
 async function initiatePayment(req, res, next) {
@@ -78,6 +79,15 @@ async function mpesaCallback(req, res, next) {
           user: student._id,
           title: "Payment Received",
           message: `Your payment of KES ${payment.amount} was successful.`,
+        });
+
+        sendPushToUser(student, {
+          title: "Payment Received",
+          body: `Your payment of KES ${payment.amount} for ${populatedPayment.request.service.name} was successful.`,
+          data: {
+            type: "payment_success",
+            requestId: populatedPayment.request._id.toString(),
+          },
         });
       }
     }
