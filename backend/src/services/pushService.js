@@ -1,4 +1,5 @@
-const admin = require("firebase-admin");
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getMessaging } = require("firebase-admin/messaging");
 const path = require("path");
 
 let initialized = false;
@@ -17,8 +18,8 @@ function ensureInitialized() {
 
   try {
     const serviceAccount = require(path.resolve(keyPath));
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+    initializeApp({
+      credential: cert(serviceAccount),
     });
     initialized = true;
     console.log("Firebase Admin initialized — push notifications enabled.");
@@ -44,7 +45,7 @@ async function sendPushToUser(user, { title, body, data = {} }) {
   );
 
   try {
-    await admin.messaging().send({
+    await getMessaging().send({
       token: user.fcmToken,
       notification: { title, body },
       data: stringData,
