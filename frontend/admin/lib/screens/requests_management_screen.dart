@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/admin_request.dart';
 import '../services/request_management_service.dart';
 import '../services/auth_service.dart';
@@ -18,23 +19,24 @@ class RequestsManagementScreen extends StatefulWidget {
   });
 
   @override
-  State<RequestsManagementScreen> createState() => _RequestsManagementScreenState();
+  State<RequestsManagementScreen> createState() =>
+      _RequestsManagementScreenState();
 }
 
 class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
   static const _statusOptions = [
-    "All",
-    "Pending",
-    "Payment Required",
-    "Paid",
-    "Processing",
-    "Completed",
+    'All',
+    'Pending',
+    'Payment Required',
+    'Paid',
+    'Processing',
+    'Completed',
   ];
 
   List<AdminRequest> _requests = [];
   bool _isLoading = true;
   String? _errorMessage;
-  String _filter = "All";
+  String _filter = 'All';
 
   @override
   void initState() {
@@ -49,12 +51,14 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
     });
 
     try {
-      final requests = await RequestManagementService.listRequests(status: _filter);
+      final requests =
+          await RequestManagementService.listRequests(status: _filter);
       setState(() => _requests = requests);
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      setState(() => _errorMessage =
+          'Could not reach the server. Check your connection and try again.');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -78,13 +82,14 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
       _loadRequests();
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
 
   String _formatDate(DateTime? date) {
-    if (date == null) return "";
-    return "${date.day}/${date.month}/${date.year}";
+    if (date == null) return '';
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   @override
@@ -95,7 +100,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Requests Management — ${widget.adminName}"),
+        title: Text('Requests Management — ${widget.adminName}'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadRequests),
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
@@ -106,36 +111,49 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
   }
 
   Widget _buildContent() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          color: Theme.of(context).colorScheme.surface,
+          color: colorScheme.surface,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-  "Student Service Requests",
-  style: TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-    color: Theme.of(context).colorScheme.primary,
-  ),
-),
-                      SizedBox(height: 4),
-                      Text("Filter and update request lifecycle statuses", style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
+                        'Student Service Requests',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Filter and update request lifecycle statuses',
+                        style: TextStyle(
+                          color: colorScheme.onSurface,
+                          fontSize: 14,
+                        ),
+                      ),
                     ],
                   ),
                   IconButton.filledTonal(
-                    icon: const Icon(Icons.refresh, color: AppTheme.electricIndigo),
+                    icon: const Icon(
+                      Icons.refresh,
+                      color: AppTheme.electricIndigo,
+                    ),
                     onPressed: _loadRequests,
-                    style: IconButton.styleFrom(backgroundColor: AppTheme.softLilacContainer),
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.softLilacContainer,
+                    ),
                   ),
                 ],
               ),
@@ -145,7 +163,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _statusOptions.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final option = _statusOptions[index];
                     final selected = option == _filter;
@@ -155,12 +173,15 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                       selectedColor: AppTheme.electricIndigo,
                       backgroundColor: AppTheme.softLilacBg,
                       labelStyle: TextStyle(
-                        color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                        fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                        color: selected ? Colors.white : colorScheme.onSurface,
+                        fontWeight:
+                            selected ? FontWeight.bold : FontWeight.w500,
                         fontSize: 13,
                       ),
                       side: BorderSide(
-                        color: selected ? AppTheme.electricIndigo : Theme.of(context).colorScheme.outline,
+                        color: selected
+                            ? AppTheme.electricIndigo
+                            : colorScheme.outline,
                       ),
                       onSelected: (_) {
                         setState(() => _filter = option);
@@ -173,7 +194,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
             ],
           ),
         ),
-        const Divider(height: 1, color: Theme.of(context).dividerColor),
+        Divider(height: 1, color: Theme.of(context).dividerColor),
         Expanded(child: _buildBody()),
       ],
     );
@@ -181,7 +202,9 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.electricIndigo));
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.electricIndigo),
+      );
     }
 
     if (_errorMessage != null) {
@@ -191,7 +214,10 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
           children: [
             Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: _loadRequests, child: const Text("Retry")),
+            ElevatedButton(
+              onPressed: _loadRequests,
+              child: const Text('Retry'),
+            ),
           ],
         ),
       );
@@ -199,7 +225,10 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
 
     if (_requests.isEmpty) {
       return const Center(
-        child: Text("No requests match this filter.", style: TextStyle(color: Colors.grey)),
+        child: Text(
+          'No requests match this filter.',
+          style: TextStyle(color: Colors.grey),
+        ),
       );
     }
 
@@ -223,7 +252,11 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                     color: AppTheme.softLilacContainer,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.receipt_long, color: AppTheme.electricIndigo, size: 24),
+                  child: const Icon(
+                    Icons.receipt_long,
+                    color: AppTheme.electricIndigo,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -234,26 +267,49 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                         children: [
                           Text(
                             request.serviceName,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.electricIndigoDark,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            "— ${request.studentName}",
-                            style: TextStyle(fontSize: 15, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+                            '— ${request.studentName}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Ref: ${request.requestNumber} · ${request.studentEmail}",
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        'Ref: ${request.requestNumber} · ${request.studentEmail}',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Text("Fee: KES ${request.serviceFee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
+                          Text(
+                            'Fee: KES ${request.serviceFee}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.electricIndigo,
+                            ),
+                          ),
                           const SizedBox(width: 16),
-                          Text("Submitted: ${_formatDate(request.submittedAt)}", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          Text(
+                            'Submitted: ${_formatDate(request.submittedAt)}',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -261,28 +317,41 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                 ),
                 PopupMenuButton<String>(
                   initialValue: request.status,
-                  tooltip: "Change Status",
-                  onSelected: (newStatus) => _changeStatus(request, newStatus),
+                  tooltip: 'Change Status',
+                  onSelected: (newStatus) =>
+                      _changeStatus(request, newStatus),
                   itemBuilder: (context) => _statusOptions
-                      .where((s) => s != "All")
-                      .map((s) => PopupMenuItem(value: s, child: Text(s)))
+                      .where((status) => status != 'All')
+                      .map((status) =>
+                          PopupMenuItem(value: status, child: Text(status)))
                       .toList(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: statusBg,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           request.status,
-                          style: TextStyle(color: statusColor, fontSize: 13, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(width: 4),
-                        Icon(Icons.arrow_drop_down, color: statusColor, size: 18),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          color: statusColor,
+                          size: 18,
+                        ),
                       ],
                     ),
                   ),
@@ -295,4 +364,3 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
     );
   }
 }
-
