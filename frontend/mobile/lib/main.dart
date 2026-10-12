@@ -5,11 +5,14 @@ import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/theme_service.dart';
 import 'services/push_service.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeService.init();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   runApp(const CampusConnectApp());
 }

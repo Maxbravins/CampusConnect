@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 import '../screens/notifications_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Must be a top-level (or static) function — FCM runs this in a
 /// separate isolate when a push arrives while the app is fully
@@ -41,7 +42,9 @@ class PushService {
       return;
     }
 
-    final token = await messaging.getToken();
+    final token = await messaging.getToken(
+      vapidKey: kIsWeb ? "BJI-dp-kYjOoGk3xG8n4Ou4CPG_dZgP6-jWwO1AHlo0Dm-lDlRzIkbzbsUdKFdz4JQ2n6FY9INkClL5ANXUjtAk" : null,
+    ); 
     if (token != null) {
       await _registerToken(token);
     }
@@ -70,7 +73,7 @@ class PushService {
     FirebaseMessaging.onMessage.listen((message) {
       final context = navigatorKey.currentContext;
       final notification = message.notification;
-      if (context == null || notification == null) return;
+      if (context == null || !context.mounted || notification == null) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
