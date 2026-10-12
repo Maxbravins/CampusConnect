@@ -49,10 +49,29 @@ async function initiateStkPush({ phoneNumber, amount, accountReference, descript
   const { data } = await axios.post(
     `${BASE_URL}/mpesa/stkpush/v1/processrequest`,
     payload,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
+    { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 15000 }
   );
 
   return data;
 }
 
-module.exports = { initiateStkPush };
+async function queryStkPush(checkoutRequestId) {
+  const accessToken = await getAccessToken();
+  const timestamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
+  const password = Buffer.from(
+    `${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`
+  ).toString("base64");
+  const { data } = await axios.post(
+    `${BASE_URL}/mpesa/stkpushquery/v1/query`,
+    {
+      BusinessShortCode: process.env.MPESA_SHORTCODE,
+      Password: password,
+      Timestamp: timestamp,
+      CheckoutRequestID: checkoutRequestId,
+    },
+    { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 15000 }
+  );
+  return data;
+}
+
+module.exports = { initiateStkPush, queryStkPush };

@@ -9,8 +9,10 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, enum: ["student", "admin"], default: "student" },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
-    resetPasswordOtp: { type: String },
+    resetPasswordOtp: { type: String, select: false },
     resetPasswordOtpExpires: { type: Date },
+    resetPasswordOtpAttempts: { type: Number, default: 0, select: false },
+    resetPasswordOtpAttempts: { type: Number, default: 0, select: false },
     fcmToken: { type: String },
   },
   { timestamps: true }

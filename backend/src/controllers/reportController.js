@@ -131,7 +131,7 @@ async function exportPaymentsCsv(req, res, next) {
         csvEscape(serviceName),
         csvEscape(p.amount),
         csvEscape(p.phoneNumber),
-        csvEscape(p.transactionReference || ""),
+        csvEscape(p.mpesaReceiptNumber || p.transactionReference || ""),
         csvEscape(p.status),
         csvEscape(date),
       ].join(",");

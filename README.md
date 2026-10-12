@@ -87,6 +87,8 @@ curl http://localhost:5000/api/health
 # -> {"status":"ok"}
 ```
 
+Run backend unit tests with `npm test` from the `backend/` directory.
+
 #### Environment variables
 
 | Variable | Description |
@@ -160,12 +162,16 @@ There's no self-service way to become an admin (by design). To create one:
 
 ## Known Limitations
 
-- Push notifications are not yet implemented; the current system uses
-  in-app and email notifications.
-- iOS support and production deployment are not yet included.
+- Push notifications are implemented through Firebase Cloud Messaging, but
+  platform-specific release setup and end-to-end delivery still need testing.
+- Production deployment and iOS release signing/configuration are not yet
+  included.
 - M-Pesa is currently configured for the Safaricom Daraja sandbox.
 
 ## Documentation
 
 See `docs/CampusConnect_Proposal.docx` for the original project proposal,
 including objectives, scope, methodology, and timeline.
+
+See [`docs/deployment.md`](docs/deployment.md) for environment configuration
+and the release checklist.

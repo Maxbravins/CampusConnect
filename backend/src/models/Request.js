@@ -12,6 +12,7 @@ const requestSchema = new mongoose.Schema(
     },
     submittedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
+    paymentInProgress: { type: Boolean, default: false, select: false },
   },
   { timestamps: true }
 );

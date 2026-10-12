@@ -201,8 +201,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               return "Enter a new password";
                             }
 
-                            if (value.length < 6) {
-                              return "Password must be at least 6 characters";
+                            if (value.length < 8) {
+                              return "Password must be at least 8 characters";
                             }
 
                             return null;

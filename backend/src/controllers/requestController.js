@@ -113,10 +113,14 @@ async function cancelRequest(req, res, next) {
       });
     }
 
-    request.status = "Cancelled";
-    await request.save();
+    const cancelled = await Request.findOneAndUpdate(
+      { _id: request._id, status: { $in: ["Payment Required", "Pending"] }, paymentInProgress: { $ne: true } },
+      { $set: { status: "Cancelled" } },
+      { new: true }
+    );
+    if (!cancelled) return res.status(409).json({ message: "This request cannot be cancelled while payment is being confirmed" });
 
-    res.json(request);
+    res.json(cancelled);
   } catch (err) {
     next(err);
   }

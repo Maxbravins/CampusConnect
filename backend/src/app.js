@@ -14,7 +14,22 @@ const announcementRoutes = require("./routes/announcementRoutes");
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({ origin(origin, callback) {
+  if (!origin) return callback(null, true);
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      const hostname = new URL(origin).hostname;
+      if (hostname === "localhost" || hostname === "127.0.0.1") return callback(null, true);
+    } catch (_) {
+      return callback(null, false);
+    }
+  }
+  return callback(null, allowedOrigins.includes(origin));
+} }));
 app.use(express.json());
 app.use(morgan("dev"));
 
