@@ -11,6 +11,10 @@ const paymentSchema = new mongoose.Schema(
     mpesaReceiptNumber: { type: String, trim: true },
     resultCode: { type: String, trim: true },
     status: { type: String, enum: ["Pending", "Success", "Failed"], default: "Pending" },
+    // Set by the reconciliation job when a payment could not be confirmed either way.
+    needsReview: { type: Boolean, default: false },
+    reconciledAt: { type: Date },
+    reconcileNote: { type: String, trim: true },
   },
   { timestamps: true }
 );

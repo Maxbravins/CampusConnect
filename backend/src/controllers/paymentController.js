@@ -1,10 +1,8 @@
 const Payment = require("../models/Payment");
 const Request = require("../models/Request");
-const User = require("../models/User");
-const Notification = require("../models/Notification");
 const { initiateStkPush, queryStkPush } = require("../services/mpesaService");
-const { sendPaymentEmail } = require("../services/emailService");
-const { sendPushToUser } = require("../services/pushService");
+const { fulfillSuccessfulPayment } = require("../services/paymentFulfillment");
+const reconciler = require("../services/paymentReconciler");
 const {
   normalizeKenyanPhone,
   callbackMetadata,
@@ -19,6 +17,10 @@ async function initiatePayment(req, res, next) {
     if (!requestId || !suppliedPhone) return res.status(400).json({ message: "requestId and phoneNumber are required" });
     const phoneNumber = normalizeKenyanPhone(suppliedPhone);
     if (!phoneNumber) return res.status(400).json({ message: "Enter a valid Kenyan mobile number" });
+
+    // If an earlier attempt is stuck, settle it with Daraja first so the student isn't locked out.
+    const earlier = await Payment.findOne({ request: requestId, status: "Pending" });
+    if (earlier) await reconciler.reconcilePayment(earlier).catch(() => {});
 
     const request = await Request.findById(requestId).populate("service", "name fee");
     if (!request) return res.status(404).json({ message: "Request not found" });
@@ -107,6 +109,14 @@ async function mpesaCallback(req, res, next) {
       return res.status(400).json({ message: "Callback identifiers did not match the initiated payment" });
     }
     if (payment.status !== "Pending") {
+      // The reconciler may have confirmed this payment by query, which has no receipt number.
+      if (payment.status === "Success" && !payment.mpesaReceiptNumber &&
+          String(callback.ResultCode) === "0" && callbackMatchesPayment(callback, payment)) {
+        await Payment.updateOne(
+          { _id: payment._id, mpesaReceiptNumber: { $in: [null, ""] } },
+          { $set: { mpesaReceiptNumber: callbackMetadata(callback).MpesaReceiptNumber } }
+        );
+      }
       return res.json({ ResultCode: 0, ResultDesc: "Already processed" });
     }
 
@@ -132,41 +142,7 @@ async function mpesaCallback(req, res, next) {
     );
     if (!claimedPayment) return res.json({ ResultCode: 0, ResultDesc: "Already processed" });
 
-    if (success) {
-      await Request.findByIdAndUpdate(payment.request, { $set: { status: "Paid", paymentInProgress: false } });
-      const student = await User.findById(claimedPayment.student);
-
-      const populatedPayment = await Payment.findById(claimedPayment._id).populate({
-        path: "request",
-        populate: { path: "service", select: "name" },
-      });
-
-      if (student && populatedPayment.request) {
-        sendPaymentEmail(student.email, {
-          serviceName: populatedPayment.request.service.name,
-          requestNumber: populatedPayment.request.requestNumber,
-          amount: claimedPayment.amount,
-          transactionReference: claimedPayment.mpesaReceiptNumber,
-          phoneNumber: claimedPayment.phoneNumber,
-          date: new Date().toLocaleString("en-KE", { timeZone: "Africa/Nairobi" }),
-        });
-
-        await Notification.create({
-          user: student._id,
-          title: "Payment Received",
-          message: `Your payment of KES ${claimedPayment.amount} was successful.`,
-        });
-
-        sendPushToUser(student, {
-          title: "Payment Received",
-          body: `Your payment of KES ${claimedPayment.amount} for ${populatedPayment.request.service.name} was successful.`,
-          data: {
-            type: "payment_success",
-            requestId: populatedPayment.request._id.toString(),
-          },
-        });
-      }
-    }
+    if (success) await fulfillSuccessfulPayment(claimedPayment);
 
     if (!success) {
       await Request.findByIdAndUpdate(payment.request, { $set: { paymentInProgress: false } });
@@ -196,6 +172,7 @@ async function listPayments(req, res, next) {
   try {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
+    if (req.query.needsReview === "true") filter.needsReview = true;
 
     const payments = await Payment.find(filter)
       .populate("student", "fullName email")
@@ -207,4 +184,15 @@ async function listPayments(req, res, next) {
   }
 }
 
-module.exports = { initiatePayment, mpesaCallback, myPayments, listPayments };
+// POST /api/payments/reconcile — admin, settle stuck payments now instead of waiting for the job
+async function reconcilePayments(req, res, next) {
+  try {
+    const results = await reconciler.reconcileStalePayments();
+    const summary = results.reduce((acc, r) => ({ ...acc, [r.action]: (acc[r.action] || 0) + 1 }), {});
+    res.json({ checked: results.length, summary, results });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { initiatePayment, mpesaCallback, myPayments, listPayments, reconcilePayments };

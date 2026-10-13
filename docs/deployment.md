@@ -30,7 +30,19 @@ For an Android emulator, use `http://10.0.2.2:5000/api`; for a physical device, 
 
 - Complete end-to-end sandbox testing for registration, password reset, request lifecycle, Daraja success/failure/callback retry, emails, and push notifications.
 - Add database backups, monitoring, error reporting, request rate limiting, and retention policies for student/payment data.
-- Reconcile payments left pending after network timeouts before allowing a student to retry; Daraja may have accepted an STK push even when the app did not receive its response.
+- Payments left pending are now reconciled automatically (see "Payment reconciliation" below). Still verify it in the sandbox before go-live.
 - Review privacy, terms, data export/deletion, admin account provisioning, and secret rotation procedures.
 - Confirm the deployment host supports HTTPS callbacks and configure production CORS origins, database network access, and Firebase service credentials.
 - Build and verify Android and web release artifacts. iOS support requires Apple signing and push setup and has not been validated by this repository review.
+
+## Payment reconciliation
+
+A background job starts with the server and runs every 2 minutes. It also runs once at startup, because a restart is when callbacks are most likely to have been missed.
+
+- **Pending for 3+ minutes with Daraja identifiers:** the job asks Daraja for the STK push result. Success marks the payment paid and fulfils the request. A definitive failure (cancelled, timed out, insufficient funds) marks it failed and unlocks the request so the student can retry. Any query error is treated as "still processing" and retried on the next run.
+- **Pending for 15+ minutes without identifiers** (the initiate call timed out before Daraja answered): the payment is marked failed with result code `UNCONFIRMED` and `needsReview: true`, and the request is unlocked. An admin should check the M-Pesa statement before refunding or retrying. List these with `GET /api/payments?needsReview=true`.
+- **Receipt numbers:** Daraja's query does not return the M-Pesa receipt number. If the real callback arrives later it fills the receipt in; otherwise the receipt stays empty and the record's `reconcileNote` explains why.
+- **Manual run:** admins can trigger a pass with `POST /api/payments/reconcile`.
+- **Retry guard:** when a student retries payment for a request with an old pending attempt, that attempt is reconciled first.
+
+Known gap: a late successful callback for an `UNCONFIRMED` payment is not matched automatically, because the payment never stored a CheckoutRequestID. Those are resolved by an admin from the review list.

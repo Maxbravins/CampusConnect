@@ -51,6 +51,7 @@ test("admin-only routes reject anonymous users and students", async () => {
     ["GET", "/api/requests"],
     ["PUT", `/api/requests/${id}/status`],
     ["GET", "/api/payments"],
+    ["POST", "/api/payments/reconcile"],
     ["GET", "/api/reports/dashboard"],
     ["GET", "/api/reports/export/requests"],
     ["GET", "/api/reports/export/payments"],
