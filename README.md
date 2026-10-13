@@ -1,5 +1,7 @@
 # CampusConnect
 
+![CI](https://github.com/Maxbravins/CampusConnect/actions/workflows/ci.yml/badge.svg)
+
 A mobile campus services and payment management system. Students browse
 campus services, submit requests, pay via M-Pesa, track status, and get
 notified of updates — all from a Flutter app. Administrators manage
