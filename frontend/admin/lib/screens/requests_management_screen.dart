@@ -163,7 +163,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _statusOptions.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final option = _statusOptions[index];
                     final selected = option == _filter;
