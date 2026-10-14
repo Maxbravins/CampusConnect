@@ -166,10 +166,16 @@ async function mpesaCallback(req, res, next) {
 // GET /api/payments/mine — student payment history
 async function myPayments(req, res, next) {
   try {
-    const payments = await Payment.find({ student: req.user.id })
-      .populate({ path: "request", populate: { path: "service", select: "name" } })
-      .sort({ createdAt: -1 });
-    res.json(payments);
+    const pagination = parsePagination(req.query);
+    if (!pagination) return res.status(400).json({ message: "page and limit must be positive integers" });
+
+    const result = await findPage({
+      model: Payment,
+      filter: { student: req.user.id },
+      populate: [[{ path: "request", populate: { path: "service", select: "name" } }]],
+      ...pagination,
+    });
+    res.json(result.items);
   } catch (err) {
     next(err);
   }

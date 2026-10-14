@@ -2,6 +2,8 @@ import '../models/payment_history_item.dart';
 import 'api_service.dart';
 
 class PaymentService {
+  static const int pageSize = 25;
+
   /// Initiates an M-Pesa STK push for the given request.
   /// Returns the backend's response, which includes the created payment
   /// record and the raw Daraja STK response.
@@ -17,8 +19,10 @@ class PaymentService {
   }
 
   /// Fetches the logged-in student's own payment history, newest first.
-  static Future<List<PaymentHistoryItem>> listMyPayments() async {
-    final data = await ApiService.get("/payments/mine");
+  static Future<List<PaymentHistoryItem>> listMyPayments({int page = 1}) async {
+    final data = await ApiService.get(
+      "/payments/mine?page=$page&limit=$pageSize",
+    );
     return (data as List).map((json) => PaymentHistoryItem.fromJson(json)).toList();
   }
 }

@@ -18,6 +18,9 @@ class MyRequestsScreen extends StatefulWidget {
 class _MyRequestsScreenState extends State<MyRequestsScreen> {
   List<ServiceRequest> _requests = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = false;
+  int _page = 1;
   String? _errorMessage;
 
   @override
@@ -26,21 +29,53 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     _loadRequests();
   }
 
-  Future<void> _loadRequests() async {
+  Future<void> _loadRequests({bool loadMore = false}) async {
+    if (loadMore && (_isLoadingMore || !_hasMore)) return;
+    final requestedPage = loadMore ? _page + 1 : 1;
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      if (loadMore) {
+        _isLoadingMore = true;
+      } else {
+        _isLoading = true;
+        _errorMessage = null;
+      }
     });
 
     try {
-      final requests = await RequestService.listMyRequests();
-      setState(() => _requests = requests);
+      final requests = await RequestService.listMyRequests(page: requestedPage);
+      if (!mounted) return;
+      setState(() {
+        if (loadMore) {
+          _requests.addAll(requests);
+        } else {
+          _requests = requests;
+        }
+        _page = requestedPage;
+        _hasMore = requests.length == RequestService.pageSize;
+      });
     } on ApiException catch (e) {
-      setState(() => _errorMessage = e.message);
+      if (!mounted) return;
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      } else {
+        setState(() => _errorMessage = e.message);
+      }
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      if (!mounted) return;
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Could not load more requests.")),
+        );
+      } else {
+        setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
     }
   }
 
@@ -243,8 +278,26 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: _requests.length,
+      itemCount: _requests.length + (_hasMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == _requests.length) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextButton(
+                onPressed: _isLoadingMore ? null : () => _loadRequests(loadMore: true),
+                child: _isLoadingMore
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Load more"),
+              ),
+            ),
+          );
+        }
+
         final request = _requests[index];
         final statusColor = AppTheme.getStatusColor(request.status);
         final statusBg = AppTheme.getStatusBgColor(request.status);

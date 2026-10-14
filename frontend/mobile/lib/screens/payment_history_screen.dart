@@ -17,6 +17,9 @@ class PaymentHistoryScreen extends StatefulWidget {
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   List<PaymentHistoryItem> _payments = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = false;
+  int _page = 1;
   String? _errorMessage;
 
   @override
@@ -25,21 +28,53 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     _loadPayments();
   }
 
-  Future<void> _loadPayments() async {
+  Future<void> _loadPayments({bool loadMore = false}) async {
+    if (loadMore && (_isLoadingMore || !_hasMore)) return;
+    final requestedPage = loadMore ? _page + 1 : 1;
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      if (loadMore) {
+        _isLoadingMore = true;
+      } else {
+        _isLoading = true;
+        _errorMessage = null;
+      }
     });
 
     try {
-      final payments = await PaymentService.listMyPayments();
-      setState(() => _payments = payments);
+      final payments = await PaymentService.listMyPayments(page: requestedPage);
+      if (!mounted) return;
+      setState(() {
+        if (loadMore) {
+          _payments.addAll(payments);
+        } else {
+          _payments = payments;
+        }
+        _page = requestedPage;
+        _hasMore = payments.length == PaymentService.pageSize;
+      });
     } on ApiException catch (e) {
-      setState(() => _errorMessage = e.message);
+      if (!mounted) return;
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      } else {
+        setState(() => _errorMessage = e.message);
+      }
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      if (!mounted) return;
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Could not load more payments.")),
+        );
+      } else {
+        setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
     }
   }
 
@@ -219,8 +254,26 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: _payments.length,
+      itemCount: _payments.length + (_hasMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == _payments.length) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextButton(
+                onPressed: _isLoadingMore ? null : () => _loadPayments(loadMore: true),
+                child: _isLoadingMore
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Load more"),
+              ),
+            ),
+          );
+        }
+
         final payment = _payments[index];
         final statusColor = _statusColor(payment.status);
 

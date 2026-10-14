@@ -40,10 +40,16 @@ async function createRequest(req, res, next) {
 // GET /api/requests/mine — student's own requests
 async function myRequests(req, res, next) {
   try {
-    const requests = await Request.find({ student: req.user.id })
-      .populate("service", "name fee")
-      .sort({ createdAt: -1 });
-    res.json(requests);
+    const pagination = parsePagination(req.query);
+    if (!pagination) return res.status(400).json({ message: "page and limit must be positive integers" });
+
+    const result = await findPage({
+      model: Request,
+      filter: { student: req.user.id },
+      populate: [["service", "name fee"]],
+      ...pagination,
+    });
+    res.json(result.items);
   } catch (err) {
     next(err);
   }
