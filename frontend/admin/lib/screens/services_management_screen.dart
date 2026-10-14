@@ -159,11 +159,15 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: feeController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: "Fee (KES)"),
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Fee (KES)",
+                          helperText: "Enter a whole amount of at least KES 1",
+                        ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return "Required";
-                          if (num.tryParse(v) == null) return "Enter a valid number";
+                          final amount = int.tryParse(v.trim());
+                          if (amount == null || amount < 1) return "Enter a whole amount of at least KES 1";
                           return null;
                         },
                       ),
@@ -174,7 +178,8 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                         decoration: const InputDecoration(labelText: "Processing Time (Days)"),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return "Required";
-                          if (int.tryParse(v) == null) return "Enter a whole number";
+                          final days = int.tryParse(v.trim());
+                          if (days == null || days < 1) return "Enter at least 1 day";
                           return null;
                         },
                       ),
