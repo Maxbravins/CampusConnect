@@ -69,9 +69,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: const Icon(Icons.school, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
-            const Text(
-              "CampusConnect",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+            const Flexible(
+              child: Text(
+                "CampusConnect",
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+              ),
             ),
             const SizedBox(width: 12),
             Container(
@@ -126,11 +129,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: Row(
               children: [
                 const Icon(Icons.admin_panel_settings, size: 16, color: Colors.white),
-                const SizedBox(width: 6),
-                Text(
-                  widget.adminName,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
-                ),
+                if (isDesktop) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    widget.adminName,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
+                ],
               ],
             ),
           ),

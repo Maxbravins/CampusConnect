@@ -2,6 +2,7 @@
 // the server was down, or its Daraja verification call failed.
 const {
   QUERY_AFTER_MS,
+  isAbandoned,
   decideReconciliation,
   interpretStkQuery,
 } = require("../utils/paymentReconciliation");
@@ -12,6 +13,23 @@ const NO_RECEIPT_NOTE =
 function createReconciler({ Payment, Request, queryStkPush, fulfillSuccessfulPayment, logger = console }) {
   const unlockRequest = (requestId) =>
     Request.findByIdAndUpdate(requestId, { $set: { paymentInProgress: false } });
+
+  // Daraja can no longer tell us what happened. Stop retrying, free the request, flag for an admin.
+  async function abandon(payment, now) {
+    const flagged = await Payment.findOneAndUpdate(
+      { _id: payment._id, status: "Pending" },
+      { $set: {
+        status: "Failed",
+        resultCode: "UNRESOLVED",
+        needsReview: true,
+        reconciledAt: new Date(now),
+        reconcileNote: "Daraja could not confirm this payment after 24 hours. Check the M-Pesa statement before refunding or retrying.",
+      } },
+      { new: true }
+    );
+    if (flagged) await unlockRequest(payment.request);
+    return { id: String(payment._id), action: flagged ? "flagged" : "skip" };
+  }
 
   async function reconcilePayment(payment, now = Date.now()) {
     const decision = decideReconciliation(payment, now);
@@ -40,11 +58,15 @@ function createReconciler({ Payment, Request, queryStkPush, fulfillSuccessfulPay
       result = await queryStkPush(payment.transactionReference);
     } catch (err) {
       // Daraja answers "still processing" with an HTTP error, so errors are inconclusive.
+      if (isAbandoned(payment, now)) return abandon(payment, now);
       return { id: String(payment._id), action: "unknown" };
     }
 
     const verdict = interpretStkQuery(result, payment);
-    if (verdict.outcome === "unknown") return { id: String(payment._id), action: "unknown" };
+    if (verdict.outcome === "unknown") {
+      if (isAbandoned(payment, now)) return abandon(payment, now);
+      return { id: String(payment._id), action: "unknown" };
+    }
 
     const succeeded = verdict.outcome === "success";
     const claimed = await Payment.findOneAndUpdate(

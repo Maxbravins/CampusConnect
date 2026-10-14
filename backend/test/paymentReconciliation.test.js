@@ -3,6 +3,8 @@ const assert = require("node:assert/strict");
 const {
   QUERY_AFTER_MS,
   UNCONFIRMED_AFTER_MS,
+  ABANDON_AFTER_MS,
+  isAbandoned,
   decideReconciliation,
   interpretStkQuery,
 } = require("../src/utils/paymentReconciliation");
@@ -176,4 +178,52 @@ test("reconcileStalePayments handles each payment independently", async () => {
   assert.equal(byId.good, "success");
   assert.equal(byId.bad, "unknown"); // Daraja answered for a different checkout id
   assert.deepEqual(h.fulfilled, ["good"]);
+});
+
+// ---------- giving up on payments Daraja can no longer answer for ----------
+
+const hoursAgo = (h) => new Date(NOW - h * 60 * 60 * 1000);
+
+test("isAbandoned only applies to pending payments older than 24 hours", () => {
+  assert.equal(ABANDON_AFTER_MS, 24 * 60 * 60 * 1000);
+  assert.equal(isAbandoned(basePayment({ createdAt: hoursAgo(23) }), NOW), false);
+  assert.equal(isAbandoned(basePayment({ createdAt: hoursAgo(24) }), NOW), true);
+  assert.equal(isAbandoned(basePayment({ createdAt: hoursAgo(48), status: "Success" }), NOW), false);
+});
+
+test("an old payment Daraja errors on is flagged, unlocked, and no longer pending", async () => {
+  const old = basePayment({ createdAt: hoursAgo(30) });
+  const h = harness({ payments: [old], queryError: new Error("Daraja has no record of this checkout id") });
+  const result = await h.reconciler.reconcilePayment(old, NOW);
+  assert.equal(result.action, "flagged");
+  const saved = h.store.get("pay1");
+  assert.equal(saved.status, "Failed");
+  assert.equal(saved.resultCode, "UNRESOLVED");
+  assert.equal(saved.needsReview, true);
+  assert.deepEqual(h.unlocked, [{ id: "req1", paymentInProgress: false }]);
+});
+
+test("an old payment with an unusable Daraja answer is also flagged", async () => {
+  const old = basePayment({ createdAt: hoursAgo(30) });
+  const h = harness({ payments: [old], queryResult: { errorCode: "500.001.1001" } });
+  const result = await h.reconciler.reconcilePayment(old, NOW);
+  assert.equal(result.action, "flagged");
+  assert.equal(h.store.get("pay1").needsReview, true);
+});
+
+test("an old payment Daraja still answers for is settled normally, not flagged", async () => {
+  const old = basePayment({ createdAt: hoursAgo(30) });
+  const h = harness({ payments: [old], queryResult: confirmed });
+  const result = await h.reconciler.reconcilePayment(old, NOW);
+  assert.equal(result.action, "success");
+  assert.equal(h.store.get("pay1").needsReview, undefined);
+  assert.deepEqual(h.fulfilled, ["pay1"]);
+});
+
+test("a recent payment with a query error is never flagged", async () => {
+  const recent = basePayment({ createdAt: hoursAgo(2) });
+  const h = harness({ payments: [recent], queryError: new Error("still processing") });
+  const result = await h.reconciler.reconcilePayment(recent, NOW);
+  assert.equal(result.action, "unknown");
+  assert.equal(h.store.get("pay1").status, "Pending");
 });

@@ -274,10 +274,12 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       const SizedBox(height: 4),
                       Text("Ref: ${request.requestNumber}", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                       const SizedBox(height: 6),
-                      Row(
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text("Fee: KES ${request.serviceFee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo, fontSize: 13)),
-                          const SizedBox(width: 12),
                           Text("Submitted: ${_formatDate(request.submittedAt)}", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                         ],
                       ),

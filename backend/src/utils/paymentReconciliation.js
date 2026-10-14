@@ -8,6 +8,10 @@ const QUERY_AFTER_MS = 3 * 60 * 1000;
 // late callback should have arrived, so we stop blocking the student and flag it.
 const UNCONFIRMED_AFTER_MS = 15 * 60 * 1000;
 
+// Daraja stops answering STK queries for old checkout ids. Past this age we stop
+// asking, free the request, and hand the payment to an admin instead of retrying forever.
+const ABANDON_AFTER_MS = 24 * 60 * 60 * 1000;
+
 function hasDarajaIds(payment) {
   return Boolean(payment.transactionReference && payment.merchantRequestId);
 }
@@ -18,6 +22,11 @@ function decideReconciliation(payment, now = Date.now()) {
   const age = now - new Date(payment.createdAt).getTime();
   if (hasDarajaIds(payment)) return age >= QUERY_AFTER_MS ? "query" : "wait";
   return age >= UNCONFIRMED_AFTER_MS ? "flag_unconfirmed" : "wait";
+}
+
+function isAbandoned(payment, now = Date.now()) {
+  return payment.status === "Pending" &&
+    now - new Date(payment.createdAt).getTime() >= ABANDON_AFTER_MS;
 }
 
 // Turns a Daraja STK query response into a definitive outcome, or "unknown".
@@ -39,6 +48,8 @@ function interpretStkQuery(result, payment) {
 module.exports = {
   QUERY_AFTER_MS,
   UNCONFIRMED_AFTER_MS,
+  ABANDON_AFTER_MS,
+  isAbandoned,
   decideReconciliation,
   interpretStkQuery,
 };

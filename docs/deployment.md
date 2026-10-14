@@ -41,6 +41,7 @@ A background job starts with the server and runs every 2 minutes. It also runs o
 
 - **Pending for 3+ minutes with Daraja identifiers:** the job asks Daraja for the STK push result. Success marks the payment paid and fulfils the request. A definitive failure (cancelled, timed out, insufficient funds) marks it failed and unlocks the request so the student can retry. Any query error is treated as "still processing" and retried on the next run.
 - **Pending for 15+ minutes without identifiers** (the initiate call timed out before Daraja answered): the payment is marked failed with result code `UNCONFIRMED` and `needsReview: true`, and the request is unlocked. An admin should check the M-Pesa statement before refunding or retrying. List these with `GET /api/payments?needsReview=true`.
+- **Pending for 24+ hours and Daraja still can't answer:** the job stops retrying. The payment is marked failed with result code `UNRESOLVED` and `needsReview: true`, and the request is unlocked. If Daraja does still answer, the payment is settled normally.
 - **Receipt numbers:** Daraja's query does not return the M-Pesa receipt number. If the real callback arrives later it fills the receipt in; otherwise the receipt stays empty and the record's `reconcileNote` explains why.
 - **Manual run:** admins can trigger a pass with `POST /api/payments/reconcile`.
 - **Retry guard:** when a student retries payment for a request with an old pending attempt, that attempt is reconciled first.

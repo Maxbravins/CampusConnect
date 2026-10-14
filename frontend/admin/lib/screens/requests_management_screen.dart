@@ -263,7 +263,10 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
                             request.serviceName,
@@ -273,7 +276,6 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                               color: AppTheme.electricIndigoDark,
                             ),
                           ),
-                          const SizedBox(width: 8),
                           Text(
                             '— ${request.studentName}',
                             style: TextStyle(
@@ -293,7 +295,10 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Row(
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
                             'Fee: KES ${request.serviceFee}',
@@ -302,7 +307,6 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                               color: AppTheme.electricIndigo,
                             ),
                           ),
-                          const SizedBox(width: 16),
                           Text(
                             'Submitted: ${_formatDate(request.submittedAt)}',
                             style: TextStyle(
