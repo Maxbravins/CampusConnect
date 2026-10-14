@@ -12,7 +12,6 @@ const userSchema = new mongoose.Schema(
     resetPasswordOtp: { type: String, select: false },
     resetPasswordOtpExpires: { type: Date },
     resetPasswordOtpAttempts: { type: Number, default: 0, select: false },
-    resetPasswordOtpAttempts: { type: Number, default: 0, select: false },
     fcmToken: { type: String },
   },
   { timestamps: true }
