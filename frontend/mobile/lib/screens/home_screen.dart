@@ -37,13 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUnreadNotifications() async {
     try {
-      final notifications = await NotificationService.listMyNotifications();
+      final count = await NotificationService.unreadCount();
 
       if (!mounted) return;
 
       setState(() {
-        _unreadNotifications =
-            notifications.where((notification) => !notification.read).length;
+        _unreadNotifications = count;
         _isLoadingNotifications = false;
       });
     } on ApiException {

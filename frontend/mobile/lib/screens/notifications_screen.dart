@@ -16,6 +16,9 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<AppNotification> _notifications = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = false;
+  int _page = 1;
   String? _errorMessage;
 
   @override
@@ -24,21 +27,55 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _loadNotifications();
   }
 
-  Future<void> _loadNotifications() async {
+  Future<void> _loadNotifications({bool loadMore = false}) async {
+    if (loadMore && (_isLoadingMore || !_hasMore)) return;
+    final requestedPage = loadMore ? _page + 1 : 1;
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      if (loadMore) {
+        _isLoadingMore = true;
+      } else {
+        _isLoading = true;
+        _errorMessage = null;
+      }
     });
 
     try {
-      final notifications = await NotificationService.listMyNotifications();
-      setState(() => _notifications = notifications);
+      final notifications = await NotificationService.listMyNotifications(
+        page: requestedPage,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (loadMore) {
+          _notifications.addAll(notifications);
+        } else {
+          _notifications = notifications;
+        }
+        _page = requestedPage;
+        _hasMore = notifications.length == NotificationService.pageSize;
+      });
     } on ApiException catch (e) {
-      setState(() => _errorMessage = e.message);
+      if (!mounted) return;
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      } else {
+        setState(() => _errorMessage = e.message);
+      }
     } catch (e) {
-      setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      if (!mounted) return;
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Could not load more notifications.")),
+        );
+      } else {
+        setState(() => _errorMessage = "Could not reach the server. Check your connection and try again.");
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
     }
   }
 
@@ -107,9 +144,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     return ListView.separated(
-      itemCount: _notifications.length,
+      itemCount: _notifications.length + (_hasMore ? 1 : 0),
       separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
+        if (index == _notifications.length) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextButton(
+                onPressed: _isLoadingMore ? null : () => _loadNotifications(loadMore: true),
+                child: _isLoadingMore
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Load more"),
+              ),
+            ),
+          );
+        }
+
         final notification = _notifications[index];
         return ListTile(
           leading: Icon(

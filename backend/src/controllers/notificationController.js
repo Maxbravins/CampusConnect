@@ -1,10 +1,27 @@
 const Notification = require("../models/Notification");
+const { findPage, parsePagination } = require("../utils/pagination");
 
 // GET /api/notifications/mine
 async function myNotifications(req, res, next) {
   try {
-    const notifications = await Notification.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json(notifications);
+    const pagination = parsePagination(req.query);
+    if (!pagination) return res.status(400).json({ message: "page and limit must be positive integers" });
+
+    const result = await findPage({
+      model: Notification,
+      filter: { user: req.user.id },
+      ...pagination,
+    });
+    res.json(result.items);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function unreadCount(req, res, next) {
+  try {
+    const count = await Notification.countDocuments({ user: req.user.id, read: false });
+    res.json({ count });
   } catch (err) {
     next(err);
   }
@@ -25,4 +42,4 @@ async function markAsRead(req, res, next) {
   }
 }
 
-module.exports = { myNotifications, markAsRead };
+module.exports = { myNotifications, unreadCount, markAsRead };
