@@ -2,6 +2,8 @@ const Request = require("../models/Request");
 const Service = require("../models/Service");
 const Notification = require("../models/Notification");
 const generateRequestNumber = require("../utils/generateRequestNumber");
+const nextRequestNumber = require("../utils/nextRequestNumber");
+const RequestCounter = require("../models/RequestCounter");
 const { sendRequestUpdateEmail, sendCompletionEmail } = require("../services/emailService");
 const { sendPushToUser } = require("../services/pushService");
 const User = require("../models/User");
@@ -20,8 +22,7 @@ async function createRequest(req, res, next) {
       return res.status(400).json({ message: "Invalid or inactive service" });
     }
 
-    const count = await Request.countDocuments();
-    const requestNumber = generateRequestNumber(count + 1);
+    const requestNumber = await nextRequestNumber({ Request, RequestCounter, generateRequestNumber });
 
     const request = await Request.create({
       requestNumber,
