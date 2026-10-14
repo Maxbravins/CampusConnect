@@ -14,6 +14,14 @@ const announcementRoutes = require("./routes/announcementRoutes");
 
 const app = express();
 
+const trustProxyHops = process.env.TRUST_PROXY_HOPS;
+if (trustProxyHops !== undefined && trustProxyHops !== "") {
+  if (!/^\d+$/.test(trustProxyHops) || !Number.isSafeInteger(Number(trustProxyHops)) || Number(trustProxyHops) < 1) {
+    throw new Error("TRUST_PROXY_HOPS must be a positive integer when set.");
+  }
+  app.set("trust proxy", Number(trustProxyHops));
+}
+
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())

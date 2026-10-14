@@ -6,9 +6,10 @@ CampusConnect is still a development MVP. The repository does not define a hosti
 
 1. Use Node.js 22 or newer and install dependencies with `npm ci` from `backend/`.
 2. Set `NODE_ENV=production`, `PORT`, `MONGO_URI`, a unique random `JWT_SECRET` (at least 32 characters), `JWT_EXPIRES_IN`, and `CORS_ORIGIN` to the exact browser origins that may call the API. Comma-separate origins when needed. Never reuse the example values.
-3. Set Daraja credentials and `MPESA_ENV=production` only after Safaricom has approved the production app. Configure `MPESA_CALLBACK_URL` as a public HTTPS URL. The backend queries Daraja before accepting successful callbacks; verify query behavior in the sandbox before go-live.
-4. Configure SMTP values and provide the Firebase Admin service account through a secret-mounted file referenced by `FIREBASE_SERVICE_ACCOUNT_PATH`. Keep the service-account JSON out of Git and out of the frontend.
-5. Run `npm test`, then `npm start`. Check `GET /api/health` after deployment.
+3. If the API is behind a reverse proxy, set `TRUST_PROXY_HOPS` to the exact number of trusted proxy hops between the client and Express. Do not set it to an arbitrary value: rate limits use the client IP Express derives from this chain. Leave it unset when clients connect directly.
+4. Set Daraja credentials and `MPESA_ENV=production` only after Safaricom has approved the production app. Configure `MPESA_CALLBACK_URL` as a public HTTPS URL. The backend queries Daraja before accepting successful callbacks; verify query behavior in the sandbox before go-live.
+5. Configure SMTP values and provide the Firebase Admin service account through a secret-mounted file referenced by `FIREBASE_SERVICE_ACCOUNT_PATH`. Keep the service-account JSON out of Git and out of the frontend.
+6. Run `npm test`, then `npm start`. Check `GET /api/health` after deployment.
 
 ## Flutter apps
 
@@ -30,6 +31,7 @@ For an Android emulator, use `http://10.0.2.2:5000/api`; for a physical device, 
 
 - Complete end-to-end sandbox testing for registration, password reset, request lifecycle, Daraja success/failure/callback retry, emails, and push notifications.
 - Add database backups, monitoring, error reporting, request rate limiting, and retention policies for student/payment data.
+- The authentication rate limiter currently uses process-local memory. If you run more than one API instance, configure a shared rate-limit store so limits apply across instances.
 - Payments left pending are now reconciled automatically (see "Payment reconciliation" below). Still verify it in the sandbox before go-live.
 - Review privacy, terms, data export/deletion, admin account provisioning, and secret rotation procedures.
 - Confirm the deployment host supports HTTPS callbacks and configure production CORS origins, database network access, and Firebase service credentials.
