@@ -1,11 +1,22 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const jwt = require("jsonwebtoken");
+const User = require("../src/models/User");
 
 process.env.JWT_SECRET = "test-secret-with-enough-randomness-1234";
 
 const app = require("../src/app");
 const generateRequestNumber = require("../src/utils/generateRequestNumber");
+const studentId = "507f1f77bcf86cd799439011";
+const originalFindById = User.findById;
+
+User.findById = (id) => ({
+  select: async () => ({
+    _id: id,
+    role: "student",
+    status: "active",
+  }),
+});
 
 let server;
 let base;
@@ -15,9 +26,12 @@ test.before(async () => {
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
-test.after(() => new Promise((resolve) => server.close(resolve)));
+test.after(async () => {
+  User.findById = originalFindById;
+  await new Promise((resolve) => server.close(resolve));
+});
 
-const tokenFor = (role) => jwt.sign({ id: "507f1f77bcf86cd799439011", role }, process.env.JWT_SECRET);
+const tokenFor = (role) => jwt.sign({ id: studentId, role }, process.env.JWT_SECRET);
 const auth = (role) => ({ authorization: `Bearer ${tokenFor(role)}` });
 
 test("GET /api/health responds ok", async () => {

@@ -1,10 +1,20 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const jwt = require("jsonwebtoken");
+const User = require("../src/models/User");
 
 process.env.JWT_SECRET = "test-secret-with-enough-randomness-1234";
 
 const { protect, adminOnly } = require("../src/middleware/authMiddleware");
+const originalFindById = User.findById;
+
+test.after(() => {
+  User.findById = originalFindById;
+});
+
+function mockUserLookup(user) {
+  User.findById = () => ({ select: async () => user });
+}
 
 function run(middleware, req) {
   return new Promise((resolve) => {
@@ -37,10 +47,28 @@ test("protect rejects malformed, tampered, and expired tokens", async () => {
 });
 
 test("protect accepts a valid token and attaches id and role", async () => {
-  const token = jwt.sign({ id: "abc123", role: "student" }, process.env.JWT_SECRET);
+  const id = "507f1f77bcf86cd799439011";
+  mockUserLookup({ _id: id, role: "student", status: "active" });
+  const token = jwt.sign({ id, role: "student" }, process.env.JWT_SECRET);
   const result = await run(protect, { headers: { authorization: `Bearer ${token}` } });
   assert.equal(result.nextCalled, true);
-  assert.equal(result.req.user.id, "abc123");
+  assert.equal(result.req.user.id, id);
+  assert.equal(result.req.user.role, "student");
+});
+
+test("protect rejects an inactive account", async () => {
+  mockUserLookup({ role: "student", status: "inactive" });
+  const token = jwt.sign({ id: "507f1f77bcf86cd799439011", role: "student" }, process.env.JWT_SECRET);
+  const result = await run(protect, { headers: { authorization: `Bearer ${token}` } });
+  assert.equal(result.status, 401);
+  assert.equal(result.nextCalled, false);
+});
+
+test("protect uses the account's current role instead of the token role", async () => {
+  mockUserLookup({ role: "student", status: "active" });
+  const token = jwt.sign({ id: "507f1f77bcf86cd799439011", role: "admin" }, process.env.JWT_SECRET);
+  const result = await run(protect, { headers: { authorization: `Bearer ${token}` } });
+  assert.equal(result.nextCalled, true);
   assert.equal(result.req.user.role, "student");
 });
 
