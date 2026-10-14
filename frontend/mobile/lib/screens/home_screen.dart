@@ -109,9 +109,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.school, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
-            const Text(
-              "CampusConnect",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            const Flexible(
+              child: Text(
+                "CampusConnect",
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
             ),
           ],
         ),

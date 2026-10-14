@@ -104,8 +104,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
                 color: AppTheme.softLilacContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                spacing: 12,
+                runSpacing: 4,
                 children: [
                   Text("Fee: KES ${service.fee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
                   Text("Time: ${service.processingDays} day(s)", style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),

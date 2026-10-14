@@ -131,7 +131,7 @@ Future<void> _exportPayments() async {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Expanded(child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -148,7 +148,7 @@ Future<void> _exportPayments() async {
                     style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                 ],
-              ),
+              )), const SizedBox(width: 8),
               IconButton.filledTonal(
                 icon: const Icon(Icons.refresh, color: AppTheme.electricIndigo),
                 onPressed: _loadStats,
@@ -197,9 +197,11 @@ Future<void> _exportPayments() async {
                         child: const Icon(Icons.receipt_long, color: AppTheme.electricIndigo),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
-                        "Recent Requests",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                      const Flexible(
+                        child: Text(
+                          "Recent Requests",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                        ),
                       ),
                     ],
                   ),
@@ -286,9 +288,11 @@ Future<void> _exportPayments() async {
                         child: const Icon(Icons.payments_outlined, color: AppTheme.electricIndigo),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
-                        "Recent Transactions",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                      const Flexible(
+                        child: Text(
+                          "Recent Transactions",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
+                        ),
                       ),
                     ],
                   ),

@@ -290,7 +290,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Expanded(child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -300,7 +300,7 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                   SizedBox(height: 4),
                   Text("Manage service offerings, fees, and operational status", style: TextStyle(color: Colors.grey, fontSize: 14)),
                 ],
-              ),
+              )), const SizedBox(width: 8),
               IconButton.filledTonal(
                 icon: const Icon(Icons.refresh, color: AppTheme.electricIndigo),
                 onPressed: _loadServices,

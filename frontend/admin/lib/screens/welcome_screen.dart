@@ -11,7 +11,7 @@ class WelcomeScreen extends StatelessWidget {
       backgroundColor: AppTheme.softLilacBg,
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
+          child: SingleChildScrollView(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -69,7 +69,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ),
+          )),
         ),
       ),
     );

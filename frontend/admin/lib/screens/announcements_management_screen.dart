@@ -154,7 +154,7 @@ class _AnnouncementsManagementScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Expanded(child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -164,7 +164,7 @@ class _AnnouncementsManagementScreenState
                   SizedBox(height: 4),
                   Text("Create and broadcast announcements to students", style: TextStyle(color: Colors.grey, fontSize: 14)),
                 ],
-              ),
+              )), const SizedBox(width: 8),
               IconButton.filledTonal(
                 icon: const Icon(Icons.refresh, color: AppTheme.electricIndigo),
                 onPressed: _loadAnnouncements,

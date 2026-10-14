@@ -124,7 +124,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -144,7 +144,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                         ),
                       ),
                     ],
-                  ),
+                  )), const SizedBox(width: 8),
                   IconButton.filledTonal(
                     icon: const Icon(
                       Icons.refresh,

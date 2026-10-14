@@ -76,7 +76,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Text("Pay via M-Pesa", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark)),
-              content: Form(
+              content: SingleChildScrollView(child: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -91,7 +91,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(request.serviceName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Flexible(child: Text(request.serviceName, style: const TextStyle(fontWeight: FontWeight.bold))),
+                          const SizedBox(width: 12),
                           Text("KES ${request.serviceFee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
                         ],
                       ),
@@ -114,7 +115,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     ],
                   ],
                 ),
-              ),
+              )),
               actions: [
                 TextButton(
                   onPressed: isSubmitting ? null : () => Navigator.of(dialogContext).pop(),
