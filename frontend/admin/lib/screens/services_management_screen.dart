@@ -394,13 +394,15 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   Text(
                                     service.name,
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.electricIndigoDark),
                                   ),
-                                  const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
@@ -416,7 +418,6 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
@@ -433,10 +434,12 @@ class _ServicesManagementScreenState extends State<ServicesManagementScreen> {
                               const SizedBox(height: 4),
                               Text(service.description, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
                               const SizedBox(height: 8),
-                              Row(
+                              Wrap(
+                                spacing: 16,
+                                runSpacing: 2,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   Text("Fee: KES ${service.fee}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.electricIndigo)),
-                                  const SizedBox(width: 16),
                                   Text("Processing: ${service.processingDays} day(s)", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                                 ],
                               ),
