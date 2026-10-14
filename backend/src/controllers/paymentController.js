@@ -1,7 +1,7 @@
 const Payment = require("../models/Payment");
 const Request = require("../models/Request");
 const { initiateStkPush, queryStkPush } = require("../services/mpesaService");
-const { fulfillSuccessfulPayment } = require("../services/paymentFulfillment");
+const { fulfillSuccessfulPayment, notifyPaymentFailed } = require("../services/paymentFulfillment");
 const reconciler = require("../services/paymentReconciler");
 const {
   normalizeKenyanPhone,
@@ -146,6 +146,7 @@ async function mpesaCallback(req, res, next) {
 
     if (!success) {
       await Request.findByIdAndUpdate(payment.request, { $set: { paymentInProgress: false } });
+      await notifyPaymentFailed(claimedPayment);
     }
 
     // Daraja expects a 200 acknowledgement

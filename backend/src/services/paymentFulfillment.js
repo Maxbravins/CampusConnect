@@ -43,4 +43,23 @@ async function fulfillSuccessfulPayment(payment) {
   }
 }
 
-module.exports = { fulfillSuccessfulPayment };
+// Tells the student a payment did not go through, so they know they can retry.
+// Never throws: a notification problem must not break callback handling or reconciliation.
+async function notifyPaymentFailed(payment) {
+  try {
+    const student = await User.findById(payment.student);
+    if (!student) return;
+
+    const message = `Your M-Pesa payment of KES ${payment.amount} was not completed. You can try again from My Requests.`;
+    await Notification.create({ user: student._id, title: "Payment Not Completed", message });
+    sendPushToUser(student, {
+      title: "Payment Not Completed",
+      body: message,
+      data: { type: "payment_failed", requestId: String(payment.request) },
+    });
+  } catch (err) {
+    console.warn(`Could not send payment-failed notification: ${err.message}`);
+  }
+}
+
+module.exports = { fulfillSuccessfulPayment, notifyPaymentFailed };

@@ -11,17 +11,21 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Never throws: an email problem must not break the request that triggered it.
+// Resolves to { ok: true, messageId } or { ok: false, error } so callers and diagnostics can tell.
 async function sendEmail(to, subject, text, html) {
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to,
       subject,
       text,
       html,
     });
+    return { ok: true, messageId: info.messageId, response: info.response };
   } catch (err) {
     console.error("Email send failed:", err.message);
+    return { ok: false, error: err };
   }
 }
 
@@ -81,6 +85,8 @@ function buildReceiptText(receipt) {
 }
 
 module.exports = {
+  transporter,
+  sendEmail,
   sendRegistrationEmail: (to, fullName) =>
     sendEmail(to, "Welcome to CampusConnect", `Hi ${fullName}, your account has been successfully created.`),
 

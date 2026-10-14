@@ -1,5 +1,6 @@
 import '../models/user.dart';
 import 'api_service.dart';
+import 'push_service.dart';
 import 'storage_service.dart';
 
 class AuthService {
@@ -41,6 +42,8 @@ class AuthService {
   }
 
   static Future<void> logout() async {
+    // Must run while the login token still exists, so the backend accepts the request.
+    await PushService.unregister();
     await StorageService.clearToken();
   }
 

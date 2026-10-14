@@ -6,6 +6,7 @@ const {
   getUser,
   updateUserStatus,
   updateFcmToken,
+  clearFcmToken,
 } = require("../controllers/userController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
@@ -16,6 +17,7 @@ const router = express.Router();
 router.get("/me", protect, getMe);
 router.put("/me", protect, updateMe);
 router.put("/fcm-token", protect, updateFcmToken);
+router.delete("/fcm-token", protect, clearFcmToken);
 
 router.get("/", protect, adminOnly, listUsers);
 router.get("/:id", protect, adminOnly, getUser);

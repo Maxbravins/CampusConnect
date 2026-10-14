@@ -45,6 +45,17 @@ test("protected student routes require a token", async () => {
   }
 });
 
+test("device token routes require a login", async () => {
+  const put = await fetch(`${base}/api/users/fcm-token`, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ fcmToken: "x" }),
+  });
+  assert.equal(put.status, 401);
+  const del = await fetch(`${base}/api/users/fcm-token`, { method: "DELETE" });
+  assert.equal(del.status, 401);
+});
+
 test("admin-only routes reject anonymous users and students", async () => {
   const id = "507f1f77bcf86cd799439011";
   const adminRoutes = [

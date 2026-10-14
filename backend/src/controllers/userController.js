@@ -81,6 +81,9 @@ async function updateFcmToken(req, res, next) {
     const { fcmToken } = req.body;
     if (!fcmToken) return res.status(400).json({ message: "fcmToken is required" });
 
+    // A device token belongs to one account. If someone else logged in on this
+    // device before, stop sending their notifications to it.
+    await User.updateMany({ fcmToken, _id: { $ne: req.user.id } }, { $unset: { fcmToken: 1 } });
     await User.findByIdAndUpdate(req.user.id, { fcmToken });
     res.json({ message: "Token registered" });
   } catch (err) {
@@ -88,4 +91,14 @@ async function updateFcmToken(req, res, next) {
   }
 }
 
-module.exports = { getMe, updateMe, listUsers, getUser, updateUserStatus, updateFcmToken };
+// DELETE /api/users/fcm-token — called on logout so this device stops receiving the user's pushes
+async function clearFcmToken(req, res, next) {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { $unset: { fcmToken: 1 } });
+    res.json({ message: "Token removed" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getMe, updateMe, listUsers, getUser, updateUserStatus, updateFcmToken, clearFcmToken };

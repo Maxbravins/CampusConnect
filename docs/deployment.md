@@ -47,3 +47,22 @@ A background job starts with the server and runs every 2 minutes. It also runs o
 - **Retry guard:** when a student retries payment for a request with an old pending attempt, that attempt is reconciled first.
 
 Known gap: a late successful callback for an `UNCONFIRMED` payment is not matched automatically, because the payment never stored a CheckoutRequestID. Those are resolved by an admin from the review list.
+
+## Checking email and push notifications
+
+Run these from the `backend` folder with your `.env` filled in:
+
+```
+npm run check:email                       # verifies the SMTP login
+npm run check:email -- you@example.com    # also sends a real test message
+npm run check:push -- student@example.com # sends a real test push to that user's device
+```
+
+Each command prints what failed and the likely fix.
+
+- **Email:** the usual causes are Brevo blocking an unlisted IP address (`525 Unauthorized IP`), using the wrong SMTP login or key, or an unverified `SMTP_FROM` sender.
+- **Push:** the user must have logged in on a device or browser and allowed notifications, so a token is saved. On the web, a push only shows as a system notification while the app tab is in the background. A focused tab shows an in-app banner instead.
+- **Dead tokens** (app reinstalled, site data cleared) are removed automatically the next time a push to them fails.
+- **Logout** removes the device token, so one user's notifications never reach the next person to log in on that device.
+
+Pushes are sent for: request status changes, successful payments, failed payments, and new announcements.

@@ -72,6 +72,7 @@ function harness({ payments, queryResult, queryError }) {
   const store = new Map(payments.map((p) => [p._id, { ...p }]));
   const unlocked = [];
   const fulfilled = [];
+  const notifiedFailed = [];
 
   const matches = (doc, filter) => Object.entries(filter).every(([key, cond]) => {
     if (cond && typeof cond === "object" && "$in" in cond) return cond.$in.includes(doc[key] ?? null);
@@ -101,9 +102,10 @@ function harness({ payments, queryResult, queryError }) {
       return queryResult;
     },
     fulfillSuccessfulPayment: async (p) => { fulfilled.push(p._id); },
+    notifyPaymentFailed: async (p) => { notifiedFailed.push(p._id); },
     logger: { log() {}, error() {} },
   });
-  return { reconciler, store, unlocked, fulfilled, queries };
+  return { reconciler, store, unlocked, fulfilled, notifiedFailed, queries };
 }
 
 const confirmed = { CheckoutRequestID: "ws_CO_1", MerchantRequestID: "merchant-1", ResultCode: "0" };
@@ -226,4 +228,31 @@ test("a recent payment with a query error is never flagged", async () => {
   const result = await h.reconciler.reconcilePayment(recent, NOW);
   assert.equal(result.action, "unknown");
   assert.equal(h.store.get("pay1").status, "Pending");
+});
+
+// ---------- telling the student ----------
+
+test("a definitively failed payment notifies the student; a successful one does not", async () => {
+  const failed = harness({
+    payments: [basePayment()],
+    queryResult: { ...confirmed, ResultCode: "1032", ResultDesc: "Request cancelled by user" },
+  });
+  await failed.reconciler.reconcilePayment(basePayment(), NOW);
+  assert.deepEqual(failed.notifiedFailed, ["pay1"]);
+
+  const paid = harness({ payments: [basePayment()], queryResult: confirmed });
+  await paid.reconciler.reconcilePayment(basePayment(), NOW);
+  assert.equal(paid.notifiedFailed.length, 0);
+});
+
+test("payments flagged for review are not reported to the student as failed", async () => {
+  const orphan = basePayment({ transactionReference: undefined, merchantRequestId: undefined, createdAt: minutesAgo(20) });
+  const unconfirmed = harness({ payments: [orphan], queryResult: confirmed });
+  await unconfirmed.reconciler.reconcilePayment(orphan, NOW);
+  assert.equal(unconfirmed.notifiedFailed.length, 0);
+
+  const old = basePayment({ createdAt: hoursAgo(30) });
+  const unresolved = harness({ payments: [old], queryError: new Error("no record") });
+  await unresolved.reconciler.reconcilePayment(old, NOW);
+  assert.equal(unresolved.notifiedFailed.length, 0);
 });

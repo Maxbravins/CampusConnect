@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'api_service.dart';
+import '../screens/announcements_screen.dart';
 import '../screens/notifications_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -23,6 +26,7 @@ class PushService {
   static final navigatorKey = GlobalKey<NavigatorState>();
 
   static bool _listenersAttached = false;
+  static StreamSubscription<String>? _tokenRefreshSub;
 
   /// Call once per app session after the user is authenticated
   /// (on login, and on every app launch if already logged in).
@@ -49,10 +53,28 @@ class PushService {
       await _registerToken(token);
     }
 
-    // Keep the backend's copy fresh if FCM rotates the token.
-    messaging.onTokenRefresh.listen(_registerToken);
+    // Keep the backend's copy fresh if FCM rotates the token. Replace any
+    // earlier subscription so repeated init() calls don't stack listeners.
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = messaging.onTokenRefresh.listen(_registerToken);
 
     _attachListeners();
+  }
+
+  /// Call on logout, BEFORE the login token is cleared. Tells the backend to stop
+  /// sending this account's pushes to this device and discards the device's FCM
+  /// token so the next person to log in here gets a fresh one.
+  static Future<void> unregister() async {
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
+    try {
+      await ApiService.delete("/users/fcm-token");
+    } catch (_) {
+      // Non-fatal — logout must always succeed.
+    }
+    try {
+      await FirebaseMessaging.instance.deleteToken();
+    } catch (_) {}
   }
 
   static Future<void> _registerToken(String token) async {
@@ -81,24 +103,29 @@ class PushService {
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
             label: "View",
-            onPressed: () => _openNotifications(),
+            onPressed: () => _openFor(message),
           ),
         ),
       );
     });
 
     // App was in the background and the user tapped the system notification.
-    FirebaseMessaging.onMessageOpenedApp.listen((message) => _openNotifications());
+    FirebaseMessaging.onMessageOpenedApp.listen(_openFor);
 
     // App was fully terminated and launched by tapping the notification.
     FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) _openNotifications();
+      if (message != null) _openFor(message);
     });
   }
 
-  static void _openNotifications() {
+  /// Announcement pushes open the announcements feed; everything else
+  /// (request updates, payments) opens the notifications list.
+  static void _openFor(RemoteMessage message) {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
-    navigator.push(MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+    final isAnnouncement = message.data['type'] == 'announcement';
+    navigator.push(MaterialPageRoute(
+      builder: (_) => isAnnouncement ? const AnnouncementsScreen() : const NotificationsScreen(),
+    ));
   }
 }

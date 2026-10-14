@@ -10,7 +10,14 @@ const {
 const NO_RECEIPT_NOTE =
   "Confirmed via Daraja STK query. The M-Pesa receipt number is added if the callback arrives later.";
 
-function createReconciler({ Payment, Request, queryStkPush, fulfillSuccessfulPayment, logger = console }) {
+function createReconciler({
+  Payment,
+  Request,
+  queryStkPush,
+  fulfillSuccessfulPayment,
+  notifyPaymentFailed = async () => {},
+  logger = console,
+}) {
   const unlockRequest = (requestId) =>
     Request.findByIdAndUpdate(requestId, { $set: { paymentInProgress: false } });
 
@@ -82,8 +89,12 @@ function createReconciler({ Payment, Request, queryStkPush, fulfillSuccessfulPay
     // A callback settled it while we were querying.
     if (!claimed) return { id: String(payment._id), action: "skip" };
 
-    if (succeeded) await fulfillSuccessfulPayment(claimed);
-    else await unlockRequest(payment.request);
+    if (succeeded) {
+      await fulfillSuccessfulPayment(claimed);
+    } else {
+      await unlockRequest(payment.request);
+      await notifyPaymentFailed(claimed);
+    }
 
     return { id: String(payment._id), action: succeeded ? "success" : "failed" };
   }
