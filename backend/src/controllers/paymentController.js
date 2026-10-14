@@ -18,15 +18,21 @@ async function initiatePayment(req, res, next) {
     const phoneNumber = normalizeKenyanPhone(suppliedPhone);
     if (!phoneNumber) return res.status(400).json({ message: "Enter a valid Kenyan mobile number" });
 
+    // Verify ownership before reconciling, because reconciliation contacts Daraja
+    // and may update payment and request state.
+    const requestOwner = await Request.findById(requestId).select("student");
+    if (!requestOwner) return res.status(404).json({ message: "Request not found" });
+    if (requestOwner.student.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "You can only pay for your own request" });
+    }
+
     // If an earlier attempt is stuck, settle it with Daraja first so the student isn't locked out.
     const earlier = await Payment.findOne({ request: requestId, status: "Pending" });
     if (earlier) await reconciler.reconcilePayment(earlier).catch(() => {});
 
+    // Re-read because reconciliation may have changed the request's payment status.
     const request = await Request.findById(requestId).populate("service", "name fee");
     if (!request) return res.status(404).json({ message: "Request not found" });
-    if (request.student.toString() !== req.user.id.toString()) {
-      return res.status(403).json({ message: "You can only pay for your own request" });
-    }
     if (request.status !== "Payment Required") {
       return res.status(409).json({ message: "This request is not awaiting payment" });
     }
