@@ -17,4 +17,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Supports role-filtered admin pages and the dashboard's student count.
+userSchema.index({ role: 1, createdAt: -1, _id: -1 });
+
 module.exports = mongoose.model("User", userSchema);

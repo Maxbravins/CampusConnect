@@ -21,5 +21,10 @@ const paymentSchema = new mongoose.Schema(
 
 // Prevent two concurrent STK pushes for the same request.
 paymentSchema.index({ request: 1 }, { unique: true, partialFilterExpression: { status: "Pending" } });
+// Support student history and the admin payment filters and recent-activity list.
+paymentSchema.index({ student: 1, createdAt: -1, _id: -1 });
+paymentSchema.index({ status: 1, createdAt: -1, _id: -1 });
+paymentSchema.index({ needsReview: 1, createdAt: -1, _id: -1 });
+paymentSchema.index({ createdAt: -1, _id: -1 });
 
 module.exports = mongoose.model("Payment", paymentSchema);
