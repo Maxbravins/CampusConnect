@@ -1,6 +1,7 @@
 const Announcement = require("../models/Announcement");
 const User = require("../models/User");
 const { sendPushToUsers } = require("../services/pushService");
+const { findPage, parsePagination } = require("../utils/pagination");
 
 const PUSH_BODY_LIMIT = 140;
 
@@ -49,11 +50,15 @@ async function createAnnouncement(req, res, next) {
 // GET /api/announcements — students view announcements
 async function listAnnouncements(req, res, next) {
   try {
-    const announcements = await Announcement.find()
-      .populate("createdBy", "fullName")
-      .sort({ createdAt: -1 });
+    const pagination = parsePagination(req.query);
+    if (!pagination) return res.status(400).json({ message: "page and limit must be positive integers" });
 
-    res.json(announcements);
+    const result = await findPage({
+      model: Announcement,
+      populate: [["createdBy", "fullName"]],
+      ...pagination,
+    });
+    res.json(result.items);
   } catch (err) {
     next(err);
   }

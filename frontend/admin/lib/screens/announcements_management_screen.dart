@@ -27,6 +27,9 @@ class _AnnouncementsManagementScreenState
 
   List<dynamic> _announcements = [];
   bool _loading = true;
+  bool _loadingMore = false;
+  bool _hasMore = false;
+  int _page = 1;
   bool _saving = false;
 
   @override
@@ -35,26 +38,44 @@ class _AnnouncementsManagementScreenState
     _loadAnnouncements();
   }
 
-  Future<void> _loadAnnouncements() async {
+  Future<void> _loadAnnouncements({bool loadMore = false}) async {
+    if (loadMore && (_loadingMore || !_hasMore)) return;
+    final requestedPage = loadMore ? _page + 1 : 1;
+    setState(() {
+      if (loadMore) {
+        _loadingMore = true;
+      } else {
+        _loading = true;
+      }
+    });
+
     try {
-      final data = await AnnouncementService.listAnnouncements();
+      final data = await AnnouncementService.listAnnouncements(page: requestedPage);
 
       if (!mounted) return;
 
       setState(() {
-        _announcements = data;
-        _loading = false;
+        if (loadMore) {
+          _announcements.addAll(data);
+        } else {
+          _announcements = data;
+        }
+        _page = requestedPage;
+        _hasMore = data.length == AnnouncementService.pageSize;
       });
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _loading = false;
-      });
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _loadingMore = false;
+        });
+      }
     }
   }
 
@@ -274,8 +295,28 @@ class _AnnouncementsManagementScreenState
                   : ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _announcements.length,
+                      itemCount: _announcements.length + (_hasMore ? 1 : 0),
                       itemBuilder: (context, index) {
+                        if (index == _announcements.length) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: TextButton(
+                                onPressed: _loadingMore
+                                    ? null
+                                    : () => _loadAnnouncements(loadMore: true),
+                                child: _loadingMore
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Text("Load more"),
+                              ),
+                            ),
+                          );
+                        }
+
                         final announcement = _announcements[index];
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -323,4 +364,4 @@ class _AnnouncementsManagementScreenState
       ),
     );
   }
-}
+}

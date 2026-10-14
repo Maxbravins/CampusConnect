@@ -14,6 +14,9 @@ class AnnouncementsScreen extends StatefulWidget {
 class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   List<Announcement> _announcements = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = false;
+  int _page = 1;
   String? _errorMessage;
 
   @override
@@ -22,37 +25,60 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     _loadAnnouncements();
   }
 
-  Future<void> _loadAnnouncements() async {
+  Future<void> _loadAnnouncements({bool loadMore = false}) async {
+    if (loadMore && (_isLoadingMore || !_hasMore)) return;
+    final requestedPage = loadMore ? _page + 1 : 1;
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      if (loadMore) {
+        _isLoadingMore = true;
+      } else {
+        _isLoading = true;
+        _errorMessage = null;
+      }
     });
 
     try {
-      final announcements =
-          await AnnouncementService.listAnnouncements();
+      final announcements = await AnnouncementService.listAnnouncements(
+        page: requestedPage,
+      );
 
       if (!mounted) return;
 
       setState(() {
-        _announcements = announcements;
-        _isLoading = false;
+        if (loadMore) {
+          _announcements.addAll(announcements);
+        } else {
+          _announcements = announcements;
+        }
+        _page = requestedPage;
+        _hasMore = announcements.length == AnnouncementService.pageSize;
       });
     } on ApiException catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _errorMessage = e.message;
-        _isLoading = false;
-      });
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      } else {
+        setState(() => _errorMessage = e.message);
+      }
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _errorMessage =
-            "Could not reach the server. Check your connection and try again.";
-        _isLoading = false;
-      });
+      if (loadMore) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Could not load more announcements.")),
+        );
+      } else {
+        setState(() => _errorMessage =
+            "Could not reach the server. Check your connection and try again.");
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
     }
   }
 
@@ -125,9 +151,27 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
       onRefresh: _loadAnnouncements,
       child: ListView.separated(
         padding: const EdgeInsets.all(20),
-        itemCount: _announcements.length,
+        itemCount: _announcements.length + (_hasMore ? 1 : 0),
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
+          if (index == _announcements.length) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextButton(
+                  onPressed: _isLoadingMore ? null : () => _loadAnnouncements(loadMore: true),
+                  child: _isLoadingMore
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Load more"),
+                ),
+              ),
+            );
+          }
+
           final announcement = _announcements[index];
 
           return Card(

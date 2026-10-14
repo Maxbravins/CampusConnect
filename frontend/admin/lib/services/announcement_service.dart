@@ -1,8 +1,12 @@
 import 'api_service.dart';
 
 class AnnouncementService {
-  static Future<List<dynamic>> listAnnouncements() async {
-    final data = await ApiService.get("/announcements");
+  static const int pageSize = 25;
+
+  static Future<List<dynamic>> listAnnouncements({int page = 1}) async {
+    final data = await ApiService.get(
+      "/announcements?page=$page&limit=$pageSize",
+    );
     return data as List<dynamic>;
   }
 
