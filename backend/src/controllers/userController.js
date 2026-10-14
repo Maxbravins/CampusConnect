@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const { findPage, parsePagination } = require("../utils/pagination");
+const { escapeRegexLiteral } = require("../utils/search");
 
 // GET /api/users/me — any logged-in user views their own profile
 async function getMe(req, res, next) {
@@ -33,18 +35,29 @@ async function updateMe(req, res, next) {
 async function listUsers(req, res, next) {
   try {
     const { search, role } = req.query;
+    const pagination = parsePagination(req.query);
+    if (!pagination) return res.status(400).json({ message: "page and limit must be positive integers" });
+    if (search !== undefined && (typeof search !== "string" || search.length > 100)) {
+      return res.status(400).json({ message: "search must be a string of 100 characters or fewer" });
+    }
+    if (role !== undefined && !["student", "admin"].includes(role)) {
+      return res.status(400).json({ message: "role must be student or admin" });
+    }
+
     const filter = {};
     if (role) filter.role = role;
-    if (search) {
+    if (search?.trim()) {
+      const literalSearch = escapeRegexLiteral(search.trim());
+      const searchPattern = new RegExp(literalSearch, "i");
       filter.$or = [
-        { fullName: new RegExp(search, "i") },
-        { email: new RegExp(search, "i") },
-        { studentId: new RegExp(search, "i") },
+        { fullName: searchPattern },
+        { email: searchPattern },
+        { studentId: searchPattern },
       ];
     }
 
-    const users = await User.find(filter).select("-password").sort({ createdAt: -1 });
-    res.json(users);
+    const result = await findPage({ model: User, filter, select: "-password", ...pagination });
+    res.json(result);
   } catch (err) {
     next(err);
   }

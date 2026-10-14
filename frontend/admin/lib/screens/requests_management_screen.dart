@@ -34,6 +34,9 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
   ];
 
   List<AdminRequest> _requests = [];
+  int _page = 1;
+  int _totalPages = 0;
+  int _totalRequests = 0;
   bool _isLoading = true;
   String? _errorMessage;
   String _filter = 'All';
@@ -44,16 +47,24 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
     _loadRequests();
   }
 
-  Future<void> _loadRequests() async {
+  Future<void> _loadRequests({int? page}) async {
+    final requestedPage = page ?? _page;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final requests =
-          await RequestManagementService.listRequests(status: _filter);
-      setState(() => _requests = requests);
+      final result = await RequestManagementService.listRequests(
+        status: _filter,
+        page: requestedPage,
+      );
+      setState(() {
+        _requests = result.items;
+        _page = result.page;
+        _totalPages = result.totalPages;
+        _totalRequests = result.total;
+      });
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
@@ -79,7 +90,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
   Future<void> _changeStatus(AdminRequest request, String newStatus) async {
     try {
       await RequestManagementService.updateStatus(request.id, newStatus);
-      _loadRequests();
+      _loadRequests(page: _page);
     } on ApiException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -102,7 +113,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
       appBar: AppBar(
         title: Text('Requests Management — ${widget.adminName}'),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadRequests),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: () => _loadRequests()),
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
@@ -150,7 +161,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                       Icons.refresh,
                       color: AppTheme.electricIndigo,
                     ),
-                    onPressed: _loadRequests,
+                    onPressed: () => _loadRequests(),
                     style: IconButton.styleFrom(
                       backgroundColor: AppTheme.softLilacContainer,
                     ),
@@ -185,7 +196,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                       ),
                       onSelected: (_) {
                         setState(() => _filter = option);
-                        _loadRequests();
+                        _loadRequests(page: 1);
                       },
                     );
                   },
@@ -196,7 +207,35 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
         ),
         Divider(height: 1, color: Theme.of(context).dividerColor),
         Expanded(child: _buildBody()),
+        if (!_isLoading && _errorMessage == null && _requests.isNotEmpty)
+          _buildPageControls(),
       ],
+    );
+  }
+
+  Widget _buildPageControls() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text('Page $_page of $_totalPages · $_totalRequests requests'),
+          const SizedBox(width: 12),
+          IconButton(
+            tooltip: 'Previous page',
+            onPressed:
+                _page > 1 ? () => _loadRequests(page: _page - 1) : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          IconButton(
+            tooltip: 'Next page',
+            onPressed: _page < _totalPages
+                ? () => _loadRequests(page: _page + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
     );
   }
 

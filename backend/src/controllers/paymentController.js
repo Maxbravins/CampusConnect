@@ -9,6 +9,7 @@ const {
   callbackMatchesPayment,
   stkQueryConfirmsPayment,
 } = require("../utils/paymentValidation");
+const { findPage, parsePagination } = require("../utils/pagination");
 
 // POST /api/payments/initiate — student pays for a request
 async function initiatePayment(req, res, next) {
@@ -177,15 +178,26 @@ async function myPayments(req, res, next) {
 // GET /api/payments — admin, all transactions
 async function listPayments(req, res, next) {
   try {
+    const pagination = parsePagination(req.query);
+    if (!pagination) return res.status(400).json({ message: "page and limit must be positive integers" });
+    if (req.query.status !== undefined && !["Pending", "Success", "Failed"].includes(req.query.status)) {
+      return res.status(400).json({ message: "Invalid payment status filter" });
+    }
+    if (req.query.needsReview !== undefined && !["true", "false"].includes(req.query.needsReview)) {
+      return res.status(400).json({ message: "needsReview must be true or false" });
+    }
+
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
     if (req.query.needsReview === "true") filter.needsReview = true;
 
-    const payments = await Payment.find(filter)
-      .populate("student", "fullName email")
-      .populate({ path: "request", populate: { path: "service", select: "name" } })
-      .sort({ createdAt: -1 });
-    res.json(payments);
+    const result = await findPage({
+      model: Payment,
+      filter,
+      populate: [["student", "fullName email"], [{ path: "request", populate: { path: "service", select: "name" } }]],
+      ...pagination,
+    });
+    res.json(result);
   } catch (err) {
     next(err);
   }

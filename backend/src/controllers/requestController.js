@@ -5,6 +5,7 @@ const generateRequestNumber = require("../utils/generateRequestNumber");
 const { sendRequestUpdateEmail, sendCompletionEmail } = require("../services/emailService");
 const { sendPushToUser } = require("../services/pushService");
 const User = require("../models/User");
+const { findPage, parsePagination } = require("../utils/pagination");
 
 // POST /api/requests — student submits a request
 async function createRequest(req, res, next) {
@@ -46,14 +47,23 @@ async function myRequests(req, res, next) {
 // GET /api/requests — admin, all requests (optionally filter by status)
 async function listRequests(req, res, next) {
   try {
+    const pagination = parsePagination(req.query);
+    if (!pagination) return res.status(400).json({ message: "page and limit must be positive integers" });
+    const allowedStatuses = ["Pending", "Payment Required", "Paid", "Processing", "Completed", "Cancelled"];
+    if (req.query.status !== undefined && !allowedStatuses.includes(req.query.status)) {
+      return res.status(400).json({ message: "Invalid request status filter" });
+    }
+
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
 
-    const requests = await Request.find(filter)
-      .populate("student", "fullName email studentId")
-      .populate("service", "name fee")
-      .sort({ createdAt: -1 });
-    res.json(requests);
+    const result = await findPage({
+      model: Request,
+      filter,
+      populate: [["student", "fullName email studentId"], ["service", "name fee"]],
+      ...pagination,
+    });
+    res.json(result);
   } catch (err) {
     next(err);
   }

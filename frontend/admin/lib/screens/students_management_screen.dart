@@ -23,6 +23,9 @@ class StudentsManagementScreen extends StatefulWidget {
 
 class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
   List<AdminUser> _users = [];
+  int _page = 1;
+  int _totalPages = 0;
+  int _totalUsers = 0;
   bool _isLoading = true;
   String? _errorMessage;
   final _searchController = TextEditingController();
@@ -39,15 +42,24 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
     super.dispose();
   }
 
-  Future<void> _loadUsers() async {
+  Future<void> _loadUsers({int? page}) async {
+    final requestedPage = page ?? _page;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final users = await UserManagementService.listUsers(search: _searchController.text);
-      setState(() => _users = users);
+      final result = await UserManagementService.listUsers(
+        search: _searchController.text,
+        page: requestedPage,
+      );
+      setState(() {
+        _users = result.items;
+        _page = result.page;
+        _totalPages = result.totalPages;
+        _totalUsers = result.total;
+      });
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (e) {
@@ -73,7 +85,7 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
     final newStatus = user.status == "active" ? "inactive" : "active";
     try {
       await UserManagementService.updateStatus(user.id, newStatus);
-      _loadUsers();
+      _loadUsers(page: _page);
     } on ApiException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
@@ -90,7 +102,7 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
       appBar: AppBar(
         title: Text("Students Management — ${widget.adminName}"),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadUsers),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: () => _loadUsers()),
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
@@ -123,7 +135,7 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
                   )), const SizedBox(width: 8),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.refresh, color: AppTheme.electricIndigo),
-                    onPressed: _loadUsers,
+                    onPressed: () => _loadUsers(page: 1),
                     style: IconButton.styleFrom(backgroundColor: AppTheme.softLilacContainer),
                   ),
                 ],
@@ -136,17 +148,44 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
                   prefixIcon: const Icon(Icons.search, color: AppTheme.electricIndigo),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.arrow_forward),
-                    onPressed: _loadUsers,
+                    onPressed: () => _loadUsers(page: 1),
                   ),
                 ),
-                onSubmitted: (_) => _loadUsers(),
+                onSubmitted: (_) => _loadUsers(page: 1),
               ),
             ],
           ),
         ),
         const Divider(height: 1, color: AppTheme.softLilacBorder),
         Expanded(child: _buildBody()),
+        if (!_isLoading && _errorMessage == null && _users.isNotEmpty)
+          _buildPageControls(),
       ],
+    );
+  }
+
+  Widget _buildPageControls() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text('Page $_page of $_totalPages · $_totalUsers students'),
+          const SizedBox(width: 12),
+          IconButton(
+            tooltip: 'Previous page',
+            onPressed: _page > 1 ? () => _loadUsers(page: _page - 1) : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          IconButton(
+            tooltip: 'Next page',
+            onPressed: _page < _totalPages
+                ? () => _loadUsers(page: _page + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
     );
   }
 
@@ -162,7 +201,7 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
           children: [
             Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: _loadUsers, child: const Text("Retry")),
+            ElevatedButton(onPressed: () => _loadUsers(), child: const Text("Retry")),
           ],
         ),
       );
