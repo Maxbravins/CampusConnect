@@ -6,6 +6,54 @@ function csvEscape(value) {
   return `"${String(value == null ? "" : value).replace(/"/g, '""')}"`;
 }
 
+function waitForDrain(res) {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      res.removeListener("drain", onDrain);
+      res.removeListener("close", onClose);
+      res.removeListener("error", onError);
+    };
+    const onDrain = () => {
+      cleanup();
+      resolve();
+    };
+    const onClose = () => {
+      cleanup();
+      reject(new Error("CSV client disconnected"));
+    };
+    const onError = (err) => {
+      cleanup();
+      reject(err);
+    };
+
+    res.once("drain", onDrain);
+    res.once("close", onClose);
+    res.once("error", onError);
+  });
+}
+
+async function streamCsv(res, cursor, header, formatRow) {
+  res.setHeader("Content-Type", "text/csv");
+  res.write(`${header}\n`);
+
+  try {
+    for await (const document of cursor) {
+      if (res.destroyed) break;
+      if (!res.write(`${formatRow(document)}\n`)) {
+        await waitForDrain(res);
+      }
+    }
+    if (!res.destroyed) res.end();
+  } catch (err) {
+    await cursor.close().catch(() => {});
+    if (res.headersSent) {
+      if (!res.destroyed) res.destroy(err);
+      return;
+    }
+    throw err;
+  }
+}
+
 // GET /api/reports/dashboard (admin only)
 async function getDashboardStats(req, res, next) {
   try {
@@ -56,11 +104,14 @@ async function getDashboardStats(req, res, next) {
 
 // GET /api/reports/export/requests (admin only)
 async function exportRequestsCsv(req, res, next) {
+  let cursor;
   try {
-    const requests = await Request.find()
+    cursor = Request.find()
       .populate("student", "fullName email")
       .populate("service", "name fee")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1, _id: -1 })
+      .lean()
+      .cursor();
 
     const header = [
       "Request Number",
@@ -72,7 +123,8 @@ async function exportRequestsCsv(req, res, next) {
       "Submitted At",
     ].join(",");
 
-    const rows = requests.map((r) => {
+    res.setHeader("Content-Disposition", "attachment; filename=campusconnect_requests.csv");
+    await streamCsv(res, cursor, header, (r) => {
       const studentName = r.student ? r.student.fullName : "";
       const studentEmail = r.student ? r.student.email : "";
       const serviceName = r.service ? r.service.name : "";
@@ -89,24 +141,22 @@ async function exportRequestsCsv(req, res, next) {
         csvEscape(submitted),
       ].join(",");
     });
-
-    const csv = [header, ...rows].join("\n");
-
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=campusconnect_requests.csv");
-    res.send(csv);
   } catch (err) {
+    if (cursor) await cursor.close().catch(() => {});
     next(err);
   }
 }
 
 // GET /api/reports/export/payments (admin only)
 async function exportPaymentsCsv(req, res, next) {
+  let cursor;
   try {
-    const payments = await Payment.find()
+    cursor = Payment.find()
       .populate("student", "fullName email")
       .populate({ path: "request", populate: { path: "service", select: "name" } })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1, _id: -1 })
+      .lean()
+      .cursor();
 
     const header = [
       "Student Name",
@@ -119,7 +169,8 @@ async function exportPaymentsCsv(req, res, next) {
       "Date",
     ].join(",");
 
-    const rows = payments.map((p) => {
+    res.setHeader("Content-Disposition", "attachment; filename=campusconnect_payments.csv");
+    await streamCsv(res, cursor, header, (p) => {
       const studentName = p.student ? p.student.fullName : "";
       const studentEmail = p.student ? p.student.email : "";
       const serviceName = p.request && p.request.service ? p.request.service.name : "";
@@ -136,13 +187,8 @@ async function exportPaymentsCsv(req, res, next) {
         csvEscape(date),
       ].join(",");
     });
-
-    const csv = [header, ...rows].join("\n");
-
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=campusconnect_payments.csv");
-    res.send(csv);
   } catch (err) {
+    if (cursor) await cursor.close().catch(() => {});
     next(err);
   }
 }
