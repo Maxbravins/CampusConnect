@@ -103,6 +103,19 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  List<String> _nextStatuses(String currentStatus) {
+    switch (currentStatus) {
+      case 'Pending':
+        return ['Payment Required'];
+      case 'Paid':
+        return ['Processing', 'Completed'];
+      case 'Processing':
+        return ['Completed'];
+      default:
+        return const [];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.embedded) {
@@ -276,6 +289,7 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
       itemCount: _requests.length,
       itemBuilder: (context, index) {
         final request = _requests[index];
+        final nextStatuses = _nextStatuses(request.status);
         final statusColor = AppTheme.getStatusColor(request.status);
         final statusBg = AppTheme.getStatusBgColor(request.status);
 
@@ -359,12 +373,11 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                   ),
                 ),
                 PopupMenuButton<String>(
-                  initialValue: request.status,
+                  enabled: nextStatuses.isNotEmpty,
                   tooltip: 'Change Status',
                   onSelected: (newStatus) =>
                       _changeStatus(request, newStatus),
-                  itemBuilder: (context) => _statusOptions
-                      .where((status) => status != 'All')
+                  itemBuilder: (context) => nextStatuses
                       .map((status) =>
                           PopupMenuItem(value: status, child: Text(status)))
                       .toList(),
@@ -390,11 +403,12 @@ class _RequestsManagementScreenState extends State<RequestsManagementScreen> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: statusColor,
-                          size: 18,
-                        ),
+                        if (nextStatuses.isNotEmpty)
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: statusColor,
+                            size: 18,
+                          ),
                       ],
                     ),
                   ),

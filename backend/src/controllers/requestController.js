@@ -6,6 +6,10 @@ const { sendRequestUpdateEmail, sendCompletionEmail } = require("../services/ema
 const { sendPushToUser } = require("../services/pushService");
 const User = require("../models/User");
 const { findPage, parsePagination } = require("../utils/pagination");
+const {
+  VALID_STATUSES,
+  canAdminTransitionRequest,
+} = require("../utils/requestStatusTransitions");
 
 // POST /api/requests — student submits a request
 async function createRequest(req, res, next) {
@@ -73,35 +77,53 @@ async function listRequests(req, res, next) {
 async function updateStatus(req, res, next) {
   try {
     const { status } = req.body;
-    const request = await Request.findById(req.params.id).populate("service", "name");
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ message: "Invalid request status" });
+    }
+
+    const request = await Request.findById(req.params.id);
     if (!request) return res.status(404).json({ message: "Request not found" });
+    if (!canAdminTransitionRequest(request.status, status)) {
+      return res.status(409).json({
+        message: status === "Paid"
+          ? "Payment status can only be changed after a confirmed payment"
+          : `Cannot move a ${request.status} request to ${status}`,
+      });
+    }
 
-    request.status = status;
-    if (status === "Completed") request.completedAt = new Date();
-    await request.save();
+    const updates = { status };
+    if (status === "Completed") updates.completedAt = new Date();
+    const updatedRequest = await Request.findOneAndUpdate(
+      { _id: request._id, status: request.status },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).populate("service", "name");
+    if (!updatedRequest) {
+      return res.status(409).json({ message: "Request status changed; refresh and try again" });
+    }
 
-    const student = await User.findById(request.student);
+    const student = await User.findById(updatedRequest.student);
     if (student) {
       if (status === "Completed") {
-        sendCompletionEmail(student.email, request.service.name);
+        sendCompletionEmail(student.email, updatedRequest.service.name);
       } else {
-        sendRequestUpdateEmail(student.email, request.service.name, status);
+        sendRequestUpdateEmail(student.email, updatedRequest.service.name, status);
       }
 
       await Notification.create({
         user: student._id,
         title: "Request Update",
-        message: `Your ${request.service.name} request (${request.requestNumber}) is now: ${status}.`,
+        message: `Your ${updatedRequest.service.name} request (${updatedRequest.requestNumber}) is now: ${status}.`,
       });
 
       sendPushToUser(student, {
         title: "Request Update",
-        body: `Your ${request.service.name} request (${request.requestNumber}) is now: ${status}.`,
-        data: { type: "request_update", requestId: request._id.toString(), status },
+        body: `Your ${updatedRequest.service.name} request (${updatedRequest.requestNumber}) is now: ${status}.`,
+        data: { type: "request_update", requestId: updatedRequest._id.toString(), status },
       });
     }
 
-    res.json(request);
+    res.json(updatedRequest);
   } catch (err) {
     next(err);
   }
