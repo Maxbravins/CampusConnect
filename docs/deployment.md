@@ -68,3 +68,18 @@ Each command prints what failed and the likely fix.
 - **Logout** removes the device token, so one user's notifications never reach the next person to log in on that device.
 
 Pushes are sent for: request status changes, successful payments, failed payments, and new announcements.
+
+## Building the Android APK
+
+From `frontend/mobile`:
+
+```
+flutter pub get
+flutter build apk --release --dart-define=API_BASE_URL=https://YOUR-BACKEND-URL/api
+```
+
+The APK is written to `frontend/mobile/build/app/outputs/flutter-apk/app-release.apk`.
+
+- `API_BASE_URL` is baked in at build time. `localhost` only works on your own computer, so a phone needs a public `https` address (a tunnel such as ngrok while developing, a hosted backend for real use). Rebuild the APK whenever that address changes.
+- Release builds are currently signed with the debug key. That is fine for testing and sharing, but a Play Store release needs its own keystore (`android/key.properties` and `*.jks` are already git-ignored).
+- The release manifest declares the `INTERNET` permission. Without it a release build cannot connect, even though debug builds can.

@@ -1,8 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for the app to reach the backend. Debug/profile builds get this
+         automatically, but a release APK does not unless it is declared here. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Required on Android 13+ to show push notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="mobile"
+        android:label="CampusConnect"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
